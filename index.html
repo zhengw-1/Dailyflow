@@ -108,7 +108,11 @@
     transition:.2s;box-shadow:0 8px 20px rgba(47,49,66,.04)
   }
   .task:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
-  .task-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start}
+  .task-row{display:grid;grid-template-columns:auto auto 1fr auto;gap:12px;align-items:start}
+  .drag-handle{border:0;background:transparent;color:#a5a1bb;font-size:18px;line-height:22px;padding:0 2px;cursor:grab;user-select:none}
+  .drag-handle:active{cursor:grabbing}
+  .task.dragging{opacity:.45}
+  .task.drag-over{outline:2px dashed var(--purple-2);outline-offset:3px}
   .check{
     width:22px;height:22px;border:2px solid #c9c5e7;border-radius:7px;background:#fff;
     display:grid;place-items:center;color:#fff;margin-top:2px;padding:0
@@ -125,7 +129,11 @@
   .task-actions{display:flex;gap:6px}
   .task-actions button{border:0;background:#f7f7fb;border-radius:10px;width:32px;height:32px;color:#7f8294}
   .subtasks{margin:14px 0 0 34px;padding-top:12px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
-  .subtask{display:flex;align-items:center;gap:10px;font-size:14px}
+  .subtask{display:flex;align-items:center;gap:10px;font-size:14px;padding:5px 7px;border-radius:10px}
+  .subtask.dragging{opacity:.45}
+  .subtask.drag-over{outline:2px dashed var(--blue);outline-offset:2px;background:var(--blue-2)}
+  .subtask-drag-handle{border:0;background:transparent;color:#aaa5bd;font-size:15px;cursor:grab;padding:0 2px;line-height:18px}
+  .subtask-drag-handle:active{cursor:grabbing}
   .subtask.done span{text-decoration:line-through;color:var(--muted)}
   .mini-check{width:18px;height:18px;border:2px solid #cbc7e5;border-radius:6px;background:#fff;padding:0}
   .mini-check.done{background:var(--purple);border-color:var(--purple)}
@@ -142,6 +150,8 @@
   .calendar-grid div{text-align:center;padding:8px 0;border-radius:9px;color:#7f8294}
   .calendar-grid .dow{font-weight:700;color:#a1a4b5}
   .calendar-grid .today{background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;font-weight:800}
+  .calendar-grid .selected:not(.today){background:var(--purple-3);color:var(--purple);font-weight:800}
+  .calendar-grid .date-cell{cursor:pointer}
   .calendar-grid .has-task{box-shadow:inset 0 -3px 0 var(--purple-2)}
   .deadline{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
   .deadline:last-child{border-bottom:0}
@@ -344,26 +354,31 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="./order-utils.js"></script>
 <script>
 const STORAGE_KEY = "dailyflow_tasks_v1";
 const ARCHIVE_KEY = "dailyflow_archive_v1";
 const SETTINGS_KEY = "dailyflow_settings_v1";
 
-const iso = d => d.toISOString().slice(0,10);
-const today = iso(new Date());
+const iso = d => {
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+};
+const getToday = () => iso(new Date());
+let selectedDate = getToday();
 const plusDays = n => { const d=new Date(); d.setDate(d.getDate()+n); return iso(d); };
 
 const defaults = [
-  {id:crypto.randomUUID(),title:"Complete discussion board reply",start:today,due:today,category:"School",priority:"High",reminder:"1 hour before",focus:true,completed:false,notes:"",subtasks:[
+  {id:crypto.randomUUID(),title:"Complete discussion board reply",start:getToday(),due:getToday(),category:"School",priority:"High",reminder:"1 hour before",focus:true,completed:false,notes:"",subtasks:[
     {id:crypto.randomUUID(),title:"Read peer response",done:true},
     {id:crypto.randomUUID(),title:"Write reply in my voice",done:false}
   ]},
-  {id:crypto.randomUUID(),title:"Organize portfolio images",start:today,due:plusDays(3),category:"Design",priority:"Medium",reminder:"Off",focus:true,completed:false,notes:"",subtasks:[
+  {id:crypto.randomUUID(),title:"Organize portfolio images",start:getToday(),due:plusDays(3),category:"Design",priority:"Medium",reminder:"Off",focus:true,completed:false,notes:"",subtasks:[
     {id:crypto.randomUUID(),title:"Select final images",done:false},
     {id:crypto.randomUUID(),title:"Rename files",done:false},
     {id:crypto.randomUUID(),title:"Upload to portfolio",done:false}
   ]},
-  {id:crypto.randomUUID(),title:"Drink water and take a break",start:today,due:today,category:"Personal",priority:"Low",reminder:"Off",focus:false,completed:true,notes:"",subtasks:[]},
+  {id:crypto.randomUUID(),title:"Drink water and take a break",start:getToday(),due:getToday(),category:"Personal",priority:"Low",reminder:"Off",focus:false,completed:true,notes:"",subtasks:[]},
   {id:crypto.randomUUID(),title:"Prepare co-op documents",start:plusDays(1),due:plusDays(7),category:"Work",priority:"Medium",reminder:"1 day before",focus:false,completed:false,notes:"",subtasks:[
     {id:crypto.randomUUID(),title:"Check onboarding email",done:false},
     {id:crypto.randomUUID(),title:"Prepare ID documents",done:false}
@@ -376,6 +391,14 @@ let settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{"notifications
 let pendingSubtasks = [];
 let editingTaskId = null;
 let currentFilter = "all";
+let draggedTaskId = null;
+let draggedSubtask = null;
+tasks = DailyFlowOrder.normalizeItemOrder(tasks).map(task => ({
+  ...task,
+  subtasks: DailyFlowOrder.normalizeItemOrder(task.subtasks || [])
+}));
+function ordered(list){ return DailyFlowOrder.normalizeItemOrder(list); }
+function normalizeOrder(){ tasks=DailyFlowOrder.normalizeItemOrder(tasks); }
 
 function save(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
@@ -402,8 +425,9 @@ function renderTask(task){
   const pct=taskPercent(task);
   const range=task.start===task.due ? task.due : `${task.start} → ${task.due}`;
   return `
-  <div class="task ${isTaskDone(task)?"completed":""}" data-id="${task.id}">
+  <div class="task ${isTaskDone(task)?"completed":""}" data-id="${task.id}" ondragover="allowTaskDrop(event,'${task.id}')" ondragleave="clearTaskDrop(event)" ondrop="dropTask(event,'${task.id}')">
     <div class="task-row">
+      <button class="drag-handle" draggable="true" title="Drag to reorder" ondragstart="startTaskDrag(event,'${task.id}')" ondragend="endTaskDrag(event)">⋮⋮</button>
       <button class="check ${isTaskDone(task)?"checked":""}" onclick="toggleTask('${task.id}')"></button>
       <div>
         <div class="task-title">${escapeHtml(task.title)}</div>
@@ -416,8 +440,9 @@ function renderTask(task){
         ${task.subtasks?.length ? `
           <div class="task-progress"><span style="width:${pct}%"></span></div>
           <div class="subtasks">
-            ${task.subtasks.map(s=>`
-              <div class="subtask ${s.done?"done":""}">
+            ${ordered(task.subtasks).map(s=>`
+              <div class="subtask ${s.done?"done":""}" data-subtask-id="${s.id}" ondragover="allowSubtaskDrop(event,'${task.id}','${s.id}')" ondragleave="clearSubtaskDrop(event)" ondrop="dropSubtask(event,'${task.id}','${s.id}')">
+                <button class="subtask-drag-handle" draggable="true" title="Drag to reorder subtask" ondragstart="startSubtaskDrag(event,'${task.id}','${s.id}')" ondragend="endSubtaskDrag(event)">⋮⋮</button>
                 <button class="mini-check ${s.done?"done":""}" onclick="toggleSubtask('${task.id}','${s.id}')"></button>
                 <span>${escapeHtml(s.title)}</span>
               </div>`).join("")}
@@ -438,14 +463,14 @@ window.toggleTask=id=>{
   const t=tasks.find(x=>x.id===id); if(!t)return;
   const next=!isTaskDone(t);
   t.completed=next;
-  t.completedDate=next ? today : null;
+  t.completedDate=next ? getToday() : null;
   if(t.subtasks?.length) t.subtasks.forEach(s=>s.done=next);
   save(); render(); showToast(next?"Task completed":"Task moved back to active");
 };
 window.toggleSubtask=(tid,sid)=>{
   const t=tasks.find(x=>x.id===tid); const s=t?.subtasks.find(x=>x.id===sid); if(!s)return;
   s.done=!s.done; syncTaskCompletion(t);
-  t.completedDate=isTaskDone(t) ? (t.completedDate||today) : null;
+  t.completedDate=isTaskDone(t) ? (t.completedDate||getToday()) : null;
   save(); render();
 };
 window.deleteTask=id=>{
@@ -456,8 +481,84 @@ window.toggleFocus=id=>{
   t.focus=!t.focus; save(); render(); showToast(t.focus?"Added to Daily Focus":"Removed from Daily Focus");
 };
 
+window.startTaskDrag=(event,id)=>{
+  draggedTaskId=id;
+  event.dataTransfer.effectAllowed="move";
+  event.dataTransfer.setData("text/plain",id);
+  event.currentTarget.closest(".task")?.classList.add("dragging");
+};
+window.allowTaskDrop=(event,id)=>{
+  if(!draggedTaskId || draggedTaskId===id)return;
+  event.preventDefault();
+  event.currentTarget.classList.add("drag-over");
+};
+window.clearTaskDrop=event=>event.currentTarget.classList.remove("drag-over");
+window.endTaskDrag=event=>{
+  event.currentTarget.closest(".task")?.classList.remove("dragging");
+  document.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"));
+  draggedTaskId=null;
+};
+window.dropTask=(event,targetId)=>{
+  event.preventDefault();
+  event.currentTarget.classList.remove("drag-over");
+  const sourceId=draggedTaskId || event.dataTransfer.getData("text/plain");
+  if(!sourceId || sourceId===targetId)return;
+  tasks=DailyFlowOrder.reorderById(tasks,sourceId,targetId);
+  save(); render(); showToast("Task order updated");
+};
+
+window.startSubtaskDrag=(event,taskId,subtaskId)=>{
+  draggedSubtask={taskId,subtaskId};
+  event.stopPropagation();
+  event.dataTransfer.effectAllowed="move";
+  event.dataTransfer.setData("text/plain",`${taskId}:${subtaskId}`);
+  event.currentTarget.closest(".subtask")?.classList.add("dragging");
+};
+window.allowSubtaskDrop=(event,taskId,targetSubtaskId)=>{
+  if(!draggedSubtask || draggedSubtask.taskId!==taskId || draggedSubtask.subtaskId===targetSubtaskId)return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.classList.add("drag-over");
+};
+window.clearSubtaskDrop=event=>{ event.currentTarget.classList.remove("drag-over"); };
+window.endSubtaskDrag=event=>{
+  event.currentTarget.closest(".subtask")?.classList.remove("dragging");
+  document.querySelectorAll(".subtask.drag-over").forEach(x=>x.classList.remove("drag-over"));
+  draggedSubtask=null;
+};
+window.dropSubtask=(event,taskId,targetSubtaskId)=>{
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.classList.remove("drag-over");
+  const task=tasks.find(t=>t.id===taskId);
+  if(!task)return;
+  let sourceSubtaskId=draggedSubtask?.subtaskId;
+  if(!sourceSubtaskId){
+    const raw=event.dataTransfer.getData("text/plain");
+    const parts=raw.split(":");
+    if(parts[0]===taskId)sourceSubtaskId=parts.slice(1).join(":");
+  }
+  if(!sourceSubtaskId || sourceSubtaskId===targetSubtaskId)return;
+  task.subtasks=DailyFlowOrder.reorderById(task.subtasks||[],sourceSubtaskId,targetSubtaskId);
+  save(); render(); showToast("Subtask order updated");
+};
+
+function updateSelectedDateHeader(){
+  const d=new Date(selectedDate+"T12:00:00");
+  const isToday=selectedDate===getToday();
+  document.getElementById("pageTitle").textContent=isToday?"Today":d.toLocaleDateString(undefined,{month:"long",day:"numeric"});
+  document.getElementById("dateText").textContent=d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+}
+window.selectCalendarDate=date=>{
+  selectedDate=date;
+  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.view==="today"));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("todayView").classList.add("active");
+  updateSelectedDateHeader(); render();
+};
+
 function render(){
-  const todays=tasks.filter(t=>t.start<=today && t.due>=today);
+  const todays=ordered(tasks.filter(t=>t.start<=selectedDate && t.due>=selectedDate));
   const visible=todays.filter(t=>currentFilter==="all" || (currentFilter==="done"?isTaskDone(t):!isTaskDone(t)));
   document.getElementById("todayTasks").innerHTML=visible.length?visible.map(renderTask).join(""):`<div class="empty">No tasks in this view.</div>`;
   document.getElementById("todayCount").textContent=todays.length;
@@ -472,9 +573,9 @@ function render(){
   const focus=todays.filter(t=>t.focus && !isTaskDone(t)).slice(0,3);
   document.getElementById("focusItems").innerHTML=focus.length?focus.map(t=>`<div class="focus-chip">${escapeHtml(t.title)}</div>`).join(""):`<div style="color:var(--muted);font-size:14px">Choose up to three focus tasks using ★.</div>`;
 
-  const upcoming=tasks.filter(t=>t.start>today || t.due>today).sort((a,b)=>a.due.localeCompare(b.due));
+  const upcoming=ordered(tasks.filter(t=>t.start>getToday() || t.due>getToday())).sort((a,b)=>a.due.localeCompare(b.due)||(a.order??0)-(b.order??0));
   document.getElementById("upcomingTasks").innerHTML=upcoming.length?upcoming.map(renderTask).join(""):`<div class="empty">No upcoming tasks.</div>`;
-  document.getElementById("allTasks").innerHTML=tasks.length?tasks.slice().sort((a,b)=>a.start.localeCompare(b.start)).map(renderTask).join(""):`<div class="empty">No tasks yet.</div>`;
+  document.getElementById("allTasks").innerHTML=tasks.length?ordered(tasks).map(renderTask).join(""):`<div class="empty">No tasks yet.</div>`;
 
   renderCompleted();
   renderCalendar();
@@ -487,7 +588,7 @@ function render(){
 function renderCompleted(){
   const groups={};
   tasks.filter(isTaskDone).forEach(t=>{
-    const d=t.completedDate||t.due||today;
+    const d=t.completedDate||t.due||getToday();
     if(!groups[d])groups[d]=[];
     groups[d].push(t);
   });
@@ -495,7 +596,7 @@ function renderCompleted(){
   document.getElementById("completedHistory").innerHTML=dates.length?dates.map(d=>`
     <div class="completed-day">
       <h3>${new Date(d+"T12:00:00").toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</h3>
-      <div class="task-list">${groups[d].map(renderTask).join("")}</div>
+      <div class="task-list">${ordered(groups[d]).map(renderTask).join("")}</div>
     </div>`).join(""):`<div class="empty">Completed tasks will appear here by date. Uncheck any task to move it back.</div>`;
 }
 function buildCalendarHTML(large=false){
@@ -506,7 +607,7 @@ function buildCalendarHTML(large=false){
   for(let d=1;d<=days;d++){
     const date=iso(new Date(y,m,d));
     const has=tasks.some(t=>t.start<=date && t.due>=date);
-    cells.push(`<div class="${date===today?"today":""} ${has?"has-task":""}">${d}</div>`);
+    cells.push(`<div class="date-cell ${date===getToday()?"today":""} ${date===selectedDate?"selected":""} ${has?"has-task":""}" onclick="selectCalendarDate('${date}')">${d}</div>`);
   }
   return `<div class="calendar-grid">${cells.join("")}</div>`;
 }
@@ -517,12 +618,12 @@ function renderCalendar(){
   document.getElementById("largeCalendar").innerHTML=buildCalendarHTML(true);
 }
 function renderDeadlines(){
-  const upcoming=tasks.filter(t=>!isTaskDone(t) && t.due>=today).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,4);
+  const upcoming=tasks.filter(t=>!isTaskDone(t) && t.due>=getToday()).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,4);
   document.getElementById("deadlineList").innerHTML=upcoming.length?upcoming.map(t=>`
     <div class="deadline"><div class="dot"></div><div><strong>${escapeHtml(t.title)}</strong><small>${t.due} · ${t.category}</small></div></div>`).join(""):`<div style="color:var(--muted);font-size:14px">No upcoming deadlines.</div>`;
 }
 function renderTimeline(){
-  const rows=tasks.filter(t=>t.due>=today).slice(0,8).map(t=>{
+  const rows=ordered(tasks.filter(t=>t.due>=getToday())).slice(0,8).map(t=>{
     const start=new Date(t.start), due=new Date(t.due);
     const span=Math.max(1,Math.round((due-start)/86400000)+1);
     const width=Math.min(100,15+span*8);
@@ -533,9 +634,20 @@ function renderTimeline(){
 
 const modal=document.getElementById("taskModal");
 function renderPendingSubtasks(){
-  document.getElementById("subtaskTags").innerHTML=pendingSubtasks.map((x,i)=>`<span class="subtask-tag">${escapeHtml(x.title)} <button type="button" onclick="removePendingSubtask(${i})" style="border:0;background:transparent;color:#6653c5;font-weight:800">×</button></span>`).join("");
+  pendingSubtasks=DailyFlowOrder.normalizeItemOrder(pendingSubtasks);
+  document.getElementById("subtaskTags").innerHTML=pendingSubtasks.map((x,i)=>`<span class="subtask-tag">
+    <button type="button" title="Move earlier" onclick="movePendingSubtask(${i},-1)" style="border:0;background:transparent;color:#6653c5;font-weight:800" ${i===0?"disabled":""}>↑</button>
+    <button type="button" title="Move later" onclick="movePendingSubtask(${i},1)" style="border:0;background:transparent;color:#6653c5;font-weight:800" ${i===pendingSubtasks.length-1?"disabled":""}>↓</button>
+    ${escapeHtml(x.title)} <button type="button" onclick="removePendingSubtask(${i})" style="border:0;background:transparent;color:#6653c5;font-weight:800">×</button></span>`).join("");
 }
 window.removePendingSubtask=i=>{ pendingSubtasks.splice(i,1); renderPendingSubtasks(); };
+window.movePendingSubtask=(i,direction)=>{
+  const target=i+direction;
+  if(target<0 || target>=pendingSubtasks.length)return;
+  [pendingSubtasks[i],pendingSubtasks[target]]=[pendingSubtasks[target],pendingSubtasks[i]];
+  pendingSubtasks=pendingSubtasks.map((item,index)=>({...item,order:index}));
+  renderPendingSubtasks();
+};
 function resetForm(){
   ["taskName","notes","subtaskInput"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("category").value="School";
@@ -561,8 +673,8 @@ function openModal(task=null){
     pendingSubtasks=(task.subtasks||[]).map(x=>({...x}));
   }else{
     resetForm();
-    document.getElementById("startDate").value=today;
-    document.getElementById("dueDate").value=today;
+    document.getElementById("startDate").value=selectedDate;
+    document.getElementById("dueDate").value=selectedDate;
   }
   renderPendingSubtasks();
 }
@@ -576,24 +688,24 @@ modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
 document.getElementById("addSubtask").onclick=()=>{
   const input=document.getElementById("subtaskInput");
   const val=input.value.trim(); if(!val)return;
-  pendingSubtasks.push({id:crypto.randomUUID(),title:val,done:false}); input.value=""; renderPendingSubtasks();
+  pendingSubtasks.push({id:crypto.randomUUID(),title:val,done:false,order:pendingSubtasks.length}); input.value=""; renderPendingSubtasks();
 };
 document.getElementById("saveTask").onclick=()=>{
   const title=document.getElementById("taskName").value.trim();
   if(!title){showToast("Please enter a task name");return}
-  const start=document.getElementById("startDate").value||today;
+  const start=document.getElementById("startDate").value||selectedDate;
   const due=document.getElementById("dueDate").value||start;
   const data={
     title,start,due,category:document.getElementById("category").value,
     priority:document.getElementById("priority").value,reminder:document.getElementById("reminder").value,
     focus:document.getElementById("focus").value==="true",notes:document.getElementById("notes").value,
-    subtasks:pendingSubtasks.map(x=>({...x}))
+    subtasks:DailyFlowOrder.normalizeItemOrder(pendingSubtasks)
   };
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
-    if(t){Object.assign(t,data); syncTaskCompletion(t); t.completedDate=isTaskDone(t)?(t.completedDate||today):null;}
+    if(t){Object.assign(t,data); syncTaskCompletion(t); t.completedDate=isTaskDone(t)?(t.completedDate||getToday()):null;}
   }else{
-    tasks.push({id:crypto.randomUUID(),completed:false,completedDate:null,...data});
+    tasks.push({id:crypto.randomUUID(),completed:false,completedDate:null,order:tasks.length,...data});
   }
   const wasEditing=Boolean(editingTaskId);
   save();closeModal();render();showToast(wasEditing?"Task updated":"Task added");
@@ -608,17 +720,24 @@ document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>{
   b.classList.add("active");
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.getElementById(b.dataset.view+"View").classList.add("active");
-  document.getElementById("pageTitle").textContent=b.textContent.trim().replace(/\d+$/,"").trim();
+  if(b.dataset.view==="today"){
+    selectedDate=getToday();
+    updateSelectedDateHeader();
+  }else{
+    document.getElementById("pageTitle").textContent=b.textContent.trim().replace(/\d+$/," ").trim();
+    document.getElementById("dateText").textContent="";
+  }
+  render();
 });
 document.getElementById("notificationSwitch").onclick=()=>{
   settings.notifications=!settings.notifications;save();render();showToast(settings.notifications?"Notifications on":"Notifications off");
 };
 document.getElementById("connectCalendar").onclick=()=>showToast("Apple Calendar sync can be connected in a native/app version.");
 document.getElementById("archiveDay").onclick=()=>{
-  const todays=tasks.filter(t=>t.start<=today && t.due>=today);
+  const todays=tasks.filter(t=>t.start<=selectedDate && t.due>=selectedDate);
   if(!todays.length){showToast("No tasks to complete");return}
-  todays.forEach(t=>{t.completed=true;t.completedDate=today;if(t.subtasks?.length)t.subtasks.forEach(s=>s.done=true);});
-  save();render();showToast("Today moved to Completed");
+  todays.forEach(t=>{t.completed=true;t.completedDate=selectedDate;if(t.subtasks?.length)t.subtasks.forEach(s=>s.done=true);});
+  save();render();showToast("Selected day moved to Completed");
 };
 document.getElementById("toggleTimeline").onclick=()=>{
   const p=document.getElementById("timelinePanel");
@@ -626,8 +745,8 @@ document.getElementById("toggleTimeline").onclick=()=>{
   document.getElementById("toggleTimeline").textContent=open?"Show Timeline":"Hide Timeline";
 };
 
-document.getElementById("dateText").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
-render();
+updateSelectedDateHeader();
+normalizeOrder(); save(); render();
 </script>
 <script>
 if ('serviceWorker' in navigator) {

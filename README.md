@@ -16,3 +16,9 @@ It will then open from the Dock like a separate app. Your tasks are saved locall
 - Do not open only `index.html` from Finder if you want install/offline behavior; the folder needs to be served from an `https://` website.
 - This version does not sync with iPhone or Apple Calendar.
 - Clearing Safari website data or deleting the web app may remove locally saved tasks.
+
+## Version 3 updates
+- Drag tasks by the ⋮⋮ handle to change their saved order.
+- Today always follows the Mac's current local date.
+- Click any date in the calendar to view that day.
+- New tasks automatically use the currently selected calendar date.
