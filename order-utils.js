@@ -14,15 +14,41 @@
       .map((item, index) => ({ ...item, order: index }));
   }
 
-  function reorderById(items, sourceId, targetId) {
+  function reorderById(items, sourceId, targetId, position = 'before') {
     const normalized = normalizeItemOrder(items);
     const sourceIndex = normalized.findIndex(item => item.id === sourceId);
-    const targetIndex = normalized.findIndex(item => item.id === targetId);
-    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return normalized;
+    if (sourceIndex < 0) return normalized;
     const [moved] = normalized.splice(sourceIndex, 1);
-    normalized.splice(targetIndex, 0, moved);
+    const targetIndex = normalized.findIndex(item => item.id === targetId);
+    if (targetIndex < 0) return normalizeItemOrder(normalized.concat(moved));
+    const insertIndex = position === 'after' ? targetIndex + 1 : targetIndex;
+    normalized.splice(insertIndex, 0, moved);
     return normalized.map((item, index) => ({ ...item, order: index }));
   }
 
-  return { normalizeItemOrder, reorderById };
+  function taskIsDone(task) {
+    return Boolean(task.completed || (task.subtasks && task.subtasks.length && task.subtasks.every(s => s.done)));
+  }
+
+  function activeTasksForDate(tasks, date, isLiveToday) {
+    return tasks.filter(task => {
+      if (task.completedDate) return false;
+      if (!task.start || task.start > date) return false;
+      if (isLiveToday) return true;
+      return !task.due || task.due >= date;
+    });
+  }
+
+  function finishDay(tasks, date) {
+    return tasks.map(task => {
+      if (task.completedDate || !task.start || task.start > date || !taskIsDone(task)) return task;
+      return { ...task, completed: true, completedDate: date };
+    });
+  }
+
+  function isOverdue(task, date) {
+    return Boolean(!task.completedDate && !taskIsDone(task) && task.due && task.due < date);
+  }
+
+  return { normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone };
 });

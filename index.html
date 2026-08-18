@@ -108,11 +108,16 @@
     transition:.2s;box-shadow:0 8px 20px rgba(47,49,66,.04)
   }
   .task:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .task.overdue-card{background:#fff;border:2px solid #e87989;box-shadow:0 8px 20px rgba(191,95,111,.06)}
+  .task.overdue-card:hover{box-shadow:0 14px 34px rgba(191,95,111,.11)}
   .task-row{display:grid;grid-template-columns:auto auto 1fr auto;gap:12px;align-items:start}
   .drag-handle{border:0;background:transparent;color:#a5a1bb;font-size:18px;line-height:22px;padding:0 2px;cursor:grab;user-select:none}
   .drag-handle:active{cursor:grabbing}
   .task.dragging{opacity:.45}
-  .task.drag-over{outline:2px dashed var(--purple-2);outline-offset:3px}
+  .task{position:relative}
+  .task.drop-before::before,.task.drop-after::after{content:"";position:absolute;left:12px;right:12px;height:3px;background:var(--purple);border-radius:999px;box-shadow:0 0 0 3px rgba(143,124,246,.10)}
+  .task.drop-before::before{top:-8px}
+  .task.drop-after::after{bottom:-8px}
   .check{
     width:22px;height:22px;border:2px solid #c9c5e7;border-radius:7px;background:#fff;
     display:grid;place-items:center;color:#fff;margin-top:2px;padding:0
@@ -126,12 +131,46 @@
   .pill.purple{background:var(--purple-3);color:#6f5cd8}
   .pill.blue{background:var(--blue-2);color:#4b89b4}
   .pill.high{background:#fff0f2;color:#c86c79}
+  .pill.blue.due-emphasis{font-weight:700;color:#3f7fae}
+  .inline-control-pill{position:relative;display:inline-flex;align-items:center;width:max-content;max-width:100%;flex:0 0 auto;white-space:nowrap;overflow:hidden}
+  .pill-native-overlay{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;margin:0;padding:0}
+  .pill-visible-text{display:inline-block;white-space:nowrap;line-height:1.2}
+  .category-pill,.priority-pill{border:1px solid transparent;box-shadow:none}
+  .category-pill{background:var(--blue-2);color:#526274;border-color:#d3ecfb}
+  .category-visible-text{font-weight:650}
+  .due-visible-text{font-weight:700}
+  .category-color-field{grid-column:1/-1}
+  .color-choice-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .color-swatch{width:28px;height:28px;border-radius:9px;border:2px solid #fff;box-shadow:0 0 0 1px #d9dce8;cursor:pointer;padding:0}
+  .color-swatch.selected{box-shadow:0 0 0 2px #7263d6}
+  .custom-color-wrap{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fbfbfe;border-radius:11px;padding:4px 8px}
+  .custom-color-wrap input[type="color"]{width:28px;height:28px;padding:0;border:0;background:transparent;border-radius:8px;cursor:pointer}
+  .custom-color-wrap span{font-size:12px;color:#6f7285;font-weight:700}
+  .start-date-display{font-size:12px;font-weight:650;color:#697084;white-space:nowrap}
+  .date-arrow{font-size:12px;color:#a0a4b4;font-weight:700}
+  .date-range-inline{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .custom-category-row{display:flex;gap:8px;align-items:center}
+  .custom-category-row input{flex:1;min-width:0}
+  .priority-pill{color:#73778b}
+  .priority-pill .pill-visible-text{font-weight:650}
+  .priority-pill.priority-low{background:#e8f6ec;color:#73778b;border-color:#cfe8d6}
+  .priority-pill.priority-medium{background:#fff7d9;color:#73778b;border-color:#f0e3a9}
+  .priority-pill.priority-high{background:#fdebed;color:#73778b;border-color:#f2cfd4}
+  .quick-subtask-row{display:flex;align-items:center;gap:8px;margin-top:10px;margin-left:34px}
+  .quick-subtask-btn{border:0;background:var(--purple-3);color:#6653c5;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:700}
+  .quick-subtask-editor{display:none;align-items:center;gap:6px;flex:1}
+  .quick-subtask-editor.open{display:flex}
+  .quick-subtask-editor input{flex:1;min-width:120px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;font-size:12px}
+  .quick-subtask-editor button{border:0;border-radius:9px;padding:7px 9px;font-size:12px;font-weight:700}
   .task-actions{display:flex;gap:6px}
   .task-actions button{border:0;background:#f7f7fb;border-radius:10px;width:32px;height:32px;color:#7f8294}
   .subtasks{margin:14px 0 0 34px;padding-top:12px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
   .subtask{display:flex;align-items:center;gap:10px;font-size:14px;padding:5px 7px;border-radius:10px}
   .subtask.dragging{opacity:.45}
-  .subtask.drag-over{outline:2px dashed var(--blue);outline-offset:2px;background:var(--blue-2)}
+  .subtask{position:relative}
+  .subtask.drop-before::before,.subtask.drop-after::after{content:"";position:absolute;left:4px;right:4px;height:2px;background:var(--blue);border-radius:999px}
+  .subtask.drop-before::before{top:-5px}
+  .subtask.drop-after::after{bottom:-5px}
   .subtask-drag-handle{border:0;background:transparent;color:#aaa5bd;font-size:15px;cursor:grab;padding:0 2px;line-height:18px}
   .subtask-drag-handle:active{cursor:grabbing}
   .subtask.done span{text-decoration:line-through;color:var(--muted)}
@@ -227,11 +266,6 @@
       <button class="nav-btn" data-view="completed">Completed</button>
     </nav>
     <div class="sidebar-spacer"></div>
-    <div class="sync-card">
-      <strong>Apple Calendar</strong>
-      <div style="font-size:13px;color:#777b8e;margin-top:5px">Calendar sync is shown as a future-ready option.</div>
-      <button id="connectCalendar">Connect Calendar</button>
-    </div>
   </aside>
 
   <main class="main">
@@ -314,12 +348,6 @@
       <h3>Upcoming Deadlines</h3>
       <div id="deadlineList"></div>
     </div>
-    <div class="card mini-card">
-      <div class="toggle-row">
-        <div><h3 style="margin:0">Notifications</h3><small style="color:var(--muted)">Adjust anytime</small></div>
-        <button class="switch on" id="notificationSwitch"><span></span></button>
-      </div>
-    </div>
   </aside>
 </div>
 
@@ -331,13 +359,17 @@
       <div class="field"><label>Start date</label><input id="startDate" type="date"></div>
       <div class="field"><label>Due date</label><input id="dueDate" type="date"></div>
       <div class="field"><label>Category</label>
-        <select id="category"><option>School</option><option>Work</option><option>Personal</option><option>Appointment</option><option>Other</option></select>
+        <select id="category"></select>
+      </div>
+      <div class="field"><label>Add custom category</label>
+        <div class="custom-category-row"><input id="newCategoryName" placeholder="New category"><button class="secondary-btn" id="saveNewCategory" type="button">Save</button></div>
+      </div>
+      <div class="field category-color-field">
+        <label>Category color</label>
+        <div class="color-choice-row" id="categoryColorPresets"></div>
       </div>
       <div class="field"><label>Priority</label>
         <select id="priority"><option>Medium</option><option>High</option><option>Low</option></select>
-      </div>
-      <div class="field"><label>Reminder</label>
-        <select id="reminder"><option>Off</option><option>At due time</option><option>10 minutes before</option><option>1 hour before</option><option>1 day before</option></select>
       </div>
       <div class="field"><label>Daily Focus</label>
         <select id="focus"><option value="false">No</option><option value="true">Yes</option></select>
@@ -355,6 +387,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="./order-utils.js"></script>
+<script src="./task-inline-edit-utils.js"></script>
 <script>
 const STORAGE_KEY = "dailyflow_tasks_v1";
 const ARCHIVE_KEY = "dailyflow_archive_v1";
@@ -366,20 +399,22 @@ const iso = d => {
 };
 const getToday = () => iso(new Date());
 let selectedDate = getToday();
+let lastKnownToday = selectedDate;
+let followRealToday = true;
 const plusDays = n => { const d=new Date(); d.setDate(d.getDate()+n); return iso(d); };
 
 const defaults = [
-  {id:crypto.randomUUID(),title:"Complete discussion board reply",start:getToday(),due:getToday(),category:"School",priority:"High",reminder:"1 hour before",focus:true,completed:false,notes:"",subtasks:[
+  {id:crypto.randomUUID(),title:"Complete discussion board reply",start:getToday(),due:getToday(),category:"School",priority:"High",focus:true,completed:false,notes:"",subtasks:[
     {id:crypto.randomUUID(),title:"Read peer response",done:true},
     {id:crypto.randomUUID(),title:"Write reply in my voice",done:false}
   ]},
-  {id:crypto.randomUUID(),title:"Organize portfolio images",start:getToday(),due:plusDays(3),category:"Design",priority:"Medium",reminder:"Off",focus:true,completed:false,notes:"",subtasks:[
+  {id:crypto.randomUUID(),title:"Organize portfolio images",start:getToday(),due:plusDays(3),category:"School",priority:"Medium",focus:true,completed:false,notes:"",subtasks:[
     {id:crypto.randomUUID(),title:"Select final images",done:false},
     {id:crypto.randomUUID(),title:"Rename files",done:false},
     {id:crypto.randomUUID(),title:"Upload to portfolio",done:false}
   ]},
-  {id:crypto.randomUUID(),title:"Drink water and take a break",start:getToday(),due:getToday(),category:"Personal",priority:"Low",reminder:"Off",focus:false,completed:true,notes:"",subtasks:[]},
-  {id:crypto.randomUUID(),title:"Prepare co-op documents",start:plusDays(1),due:plusDays(7),category:"Work",priority:"Medium",reminder:"1 day before",focus:false,completed:false,notes:"",subtasks:[
+  {id:crypto.randomUUID(),title:"Drink water and take a break",start:getToday(),due:getToday(),category:"Personal",priority:"Low",focus:false,completed:true,notes:"",subtasks:[]},
+  {id:crypto.randomUUID(),title:"Prepare co-op documents",start:plusDays(1),due:plusDays(7),category:"Work",priority:"Medium",focus:false,completed:false,notes:"",subtasks:[
     {id:crypto.randomUUID(),title:"Check onboarding email",done:false},
     {id:crypto.randomUUID(),title:"Prepare ID documents",done:false}
   ]}
@@ -387,7 +422,12 @@ const defaults = [
 
 let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || defaults;
 let archive = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || "{}");
-let settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{"notifications":true}');
+let settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+settings.categories = DailyFlowInlineEdit.normalizeCategories(settings.categories || ["School","Work","Personal"], tasks);
+settings.categoryColors = DailyFlowInlineEdit.normalizeCategoryColors(settings.categoryColors || {}, settings.categories);
+for(const task of tasks){ delete task.reminder; }
+delete settings.notifications;
+let pendingCategoryColor = null;
 let pendingSubtasks = [];
 let editingTaskId = null;
 let currentFilter = "all";
@@ -421,21 +461,82 @@ function isTaskDone(task){
 function syncTaskCompletion(task){
   if(task.subtasks?.length) task.completed = task.subtasks.every(s=>s.done);
 }
+function pillSlug(value){ return String(value||"other").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "other"; }
+const CATEGORY_COLOR_PRESETS=[
+  {name:"Pastel Blue",value:"#e7f5ff"},
+  {name:"Pastel Purple",value:"#eeeaff"},
+  {name:"Soft Pink",value:"#fff0f5"},
+  {name:"Soft Green",value:"#e8f6ec"},
+  {name:"Soft Yellow",value:"#fff7d9"},
+  {name:"Soft Red",value:"#fdebed"},
+  {name:"Soft Peach",value:"#fff3e8"}
+];
+function categoryColor(category){
+  return settings.categoryColors?.[category] || "#e7f5ff";
+}
+function categoryColorStyle(category){
+  const bg=categoryColor(category);
+  const fg=DailyFlowInlineEdit.readableTextColor(bg);
+  return `background:${bg};color:${fg};border-color:rgba(82,98,116,.12)`;
+}
+function categoryOptions(selected){
+  return settings.categories.map(c=>`<option value="${escapeHtml(c)}" ${selected===c?"selected":""}>${escapeHtml(c)}</option>`).join("");
+}
+function refreshCategoryField(selected){
+  const el=document.getElementById("category"); if(!el)return;
+  const chosen=selected || el.value || "School";
+  el.innerHTML=categoryOptions(chosen);
+  el.value=settings.categories.includes(chosen)?chosen:"School";
+  pendingCategoryColor=categoryColor(el.value);
+  renderCategoryColorPicker();
+}
+function renderCategoryColorPicker(){
+  const host=document.getElementById("categoryColorPresets"); if(!host)return;
+  const active=DailyFlowInlineEdit.normalizeHexColor(pendingCategoryColor) || "#e7f5ff";
+  host.innerHTML=CATEGORY_COLOR_PRESETS.map(p=>`
+    <button type="button" class="color-swatch ${active===p.value?"selected":""}" style="background:${p.value}" title="${p.name}" aria-label="${p.name}" onclick="chooseCategoryColor('${p.value}')"></button>
+  `).join("") + `
+    <label class="custom-color-wrap">
+      <input id="customCategoryColor" type="color" value="${active}" title="Custom category color" onchange="chooseCategoryColor(this.value)">
+      <span>Custom</span>
+    </label>`;
+}
+window.chooseCategoryColor=value=>{
+  const clean=DailyFlowInlineEdit.normalizeHexColor(value); if(!clean)return;
+  pendingCategoryColor=clean;
+  renderCategoryColorPicker();
+};
 function renderTask(task){
   const pct=taskPercent(task);
-  const range=task.start===task.due ? task.due : `${task.start} → ${task.due}`;
+  const overdue=DailyFlowOrder.isOverdue(task,selectedDate);
   return `
-  <div class="task ${isTaskDone(task)?"completed":""}" data-id="${task.id}" ondragover="allowTaskDrop(event,'${task.id}')" ondragleave="clearTaskDrop(event)" ondrop="dropTask(event,'${task.id}')">
+  <div class="task ${isTaskDone(task)?"completed":""} ${overdue && !isTaskDone(task)?"overdue-card":""}" data-id="${task.id}" ondragover="allowTaskDrop(event,'${task.id}')" ondragleave="clearTaskDrop(event)" ondrop="dropTask(event,'${task.id}')">
     <div class="task-row">
       <button class="drag-handle" draggable="true" title="Drag to reorder" ondragstart="startTaskDrag(event,'${task.id}')" ondragend="endTaskDrag(event)">⋮⋮</button>
       <button class="check ${isTaskDone(task)?"checked":""}" onclick="toggleTask('${task.id}')"></button>
       <div>
         <div class="task-title">${escapeHtml(task.title)}</div>
         <div class="meta">
-          <span class="pill purple">${escapeHtml(task.category)}</span>
-          <span class="pill blue">${range}</span>
-          <span class="pill ${task.priority==="High"?"high":""}">${task.priority}</span>
-          ${task.reminder!=="Off" ? `<span class="pill">🔔 ${task.reminder}</span>`:""}
+          <span class="pill category-pill inline-control-pill" style="${categoryColorStyle(task.category)}">
+            <span class="pill-visible-text category-visible-text">${escapeHtml(task.category)}</span>
+            <select class="pill-native-overlay" title="Change category" aria-label="Change category" onchange="inlineCategory('${task.id}',this.value)">
+              ${categoryOptions(task.category)}
+            </select>
+          </span>
+          <span class="date-range-inline">
+            <span class="start-date-display">${DailyFlowInlineEdit.formatDisplayDate(task.start)}</span>
+            <span class="date-arrow">→</span>
+            <span class="pill blue inline-control-pill ${overdue?"due-emphasis":""}">
+              <span class="pill-visible-text due-visible-text">${DailyFlowInlineEdit.formatDisplayDate(task.due)}</span>
+              <input class="pill-native-overlay" type="date" value="${task.due}" title="Change due date" aria-label="Change due date" onchange="inlineDueDate('${task.id}',this.value)">
+            </span>
+          </span>
+          <span class="pill priority-pill priority-${pillSlug(task.priority)} inline-control-pill">
+            <span class="pill-visible-text">${escapeHtml(task.priority)}</span>
+            <select class="pill-native-overlay" title="Change priority" aria-label="Change priority" onchange="inlinePriority('${task.id}',this.value)">
+              ${["Low","Medium","High"].map(p=>`<option value="${p}" ${task.priority===p?"selected":""}>${p}</option>`).join("")}
+            </select>
+          </span>
         </div>
         ${task.subtasks?.length ? `
           <div class="task-progress"><span style="width:${pct}%"></span></div>
@@ -447,6 +548,14 @@ function renderTask(task){
                 <span>${escapeHtml(s.title)}</span>
               </div>`).join("")}
           </div>`:""}
+        <div class="quick-subtask-row">
+          <button class="quick-subtask-btn" type="button" onclick="showQuickSubtask('${task.id}')">+ Subtask</button>
+          <div class="quick-subtask-editor" id="quick-subtask-${task.id}">
+            <input id="quick-subtask-input-${task.id}" placeholder="Add subtask" onkeydown="quickSubtaskKey(event,'${task.id}')">
+            <button type="button" class="primary-btn" onclick="saveQuickSubtask('${task.id}')">Add</button>
+            <button type="button" class="secondary-btn" onclick="hideQuickSubtask('${task.id}')">Cancel</button>
+          </div>
+        </div>
       </div>
       <div class="task-actions">
         <button title="Edit task" onclick="editTask('${task.id}')">✎</button>
@@ -463,14 +572,14 @@ window.toggleTask=id=>{
   const t=tasks.find(x=>x.id===id); if(!t)return;
   const next=!isTaskDone(t);
   t.completed=next;
-  t.completedDate=next ? getToday() : null;
+  if(!next)t.completedDate=null;
   if(t.subtasks?.length) t.subtasks.forEach(s=>s.done=next);
   save(); render(); showToast(next?"Task completed":"Task moved back to active");
 };
 window.toggleSubtask=(tid,sid)=>{
   const t=tasks.find(x=>x.id===tid); const s=t?.subtasks.find(x=>x.id===sid); if(!s)return;
   s.done=!s.done; syncTaskCompletion(t);
-  t.completedDate=isTaskDone(t) ? (t.completedDate||getToday()) : null;
+  if(!isTaskDone(t))t.completedDate=null;
   save(); render();
 };
 window.deleteTask=id=>{
@@ -480,6 +589,38 @@ window.toggleFocus=id=>{
   const t=tasks.find(x=>x.id===id); if(!t)return;
   t.focus=!t.focus; save(); render(); showToast(t.focus?"Added to Daily Focus":"Removed from Daily Focus");
 };
+window.inlineCategory=(id,value)=>{
+  if(DailyFlowInlineEdit.updateCategory(tasks,id,value)){
+    if(!settings.categoryColors[value]) settings.categoryColors[value]="#e7f5ff";
+    save();render();showToast(`Category changed to ${value}`);
+  }
+};
+window.inlinePriority=(id,value)=>{
+  if(DailyFlowInlineEdit.updatePriority(tasks,id,value)){save();render();showToast(`Priority changed to ${value}`);}
+};
+window.inlineDueDate=(id,value)=>{
+  if(DailyFlowInlineEdit.updateDueDate(tasks,id,value)){save();render();showToast("Due date updated");}
+  else { render(); showToast("Due date cannot be earlier than the start date"); }
+};
+window.showQuickSubtask=id=>{
+  document.getElementById(`quick-subtask-${id}`)?.classList.add("open");
+  setTimeout(()=>document.getElementById(`quick-subtask-input-${id}`)?.focus(),0);
+};
+window.hideQuickSubtask=id=>{
+  const editor=document.getElementById(`quick-subtask-${id}`);
+  const input=document.getElementById(`quick-subtask-input-${id}`);
+  editor?.classList.remove("open"); if(input)input.value="";
+};
+window.saveQuickSubtask=id=>{
+  const input=document.getElementById(`quick-subtask-input-${id}`);
+  if(!input)return;
+  const title=input.value.trim(); if(!title){showToast("Enter a subtask first");return;}
+  if(DailyFlowInlineEdit.addSubtask(tasks,id,title,crypto.randomUUID())){save();render();showToast("Subtask added");}
+};
+window.quickSubtaskKey=(event,id)=>{
+  if(event.key==="Enter"){event.preventDefault();saveQuickSubtask(id);}
+  if(event.key==="Escape"){event.preventDefault();hideQuickSubtask(id);}
+};
 
 window.startTaskDrag=(event,id)=>{
   draggedTaskId=id;
@@ -487,23 +628,34 @@ window.startTaskDrag=(event,id)=>{
   event.dataTransfer.setData("text/plain",id);
   event.currentTarget.closest(".task")?.classList.add("dragging");
 };
+function clearDropLines(selector=".drop-before,.drop-after"){
+  document.querySelectorAll(selector).forEach(x=>x.classList.remove("drop-before","drop-after"));
+}
+function dropPositionForEvent(event,element){
+  const rect=element.getBoundingClientRect();
+  return event.clientY < rect.top + rect.height/2 ? "before" : "after";
+}
 window.allowTaskDrop=(event,id)=>{
   if(!draggedTaskId || draggedTaskId===id)return;
   event.preventDefault();
-  event.currentTarget.classList.add("drag-over");
+  const el=event.currentTarget;
+  el.classList.remove("drop-before","drop-after");
+  el.classList.add(`drop-${dropPositionForEvent(event,el)}`);
 };
-window.clearTaskDrop=event=>event.currentTarget.classList.remove("drag-over");
+window.clearTaskDrop=event=>event.currentTarget.classList.remove("drop-before","drop-after");
 window.endTaskDrag=event=>{
   event.currentTarget.closest(".task")?.classList.remove("dragging");
-  document.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"));
+  clearDropLines();
   draggedTaskId=null;
 };
 window.dropTask=(event,targetId)=>{
   event.preventDefault();
-  event.currentTarget.classList.remove("drag-over");
+  const el=event.currentTarget;
+  const position=dropPositionForEvent(event,el);
+  el.classList.remove("drop-before","drop-after");
   const sourceId=draggedTaskId || event.dataTransfer.getData("text/plain");
   if(!sourceId || sourceId===targetId)return;
-  tasks=DailyFlowOrder.reorderById(tasks,sourceId,targetId);
+  tasks=DailyFlowOrder.reorderById(tasks,sourceId,targetId,position);
   save(); render(); showToast("Task order updated");
 };
 
@@ -518,18 +670,22 @@ window.allowSubtaskDrop=(event,taskId,targetSubtaskId)=>{
   if(!draggedSubtask || draggedSubtask.taskId!==taskId || draggedSubtask.subtaskId===targetSubtaskId)return;
   event.preventDefault();
   event.stopPropagation();
-  event.currentTarget.classList.add("drag-over");
+  const el=event.currentTarget;
+  el.classList.remove("drop-before","drop-after");
+  el.classList.add(`drop-${dropPositionForEvent(event,el)}`);
 };
-window.clearSubtaskDrop=event=>{ event.currentTarget.classList.remove("drag-over"); };
+window.clearSubtaskDrop=event=>{ event.currentTarget.classList.remove("drop-before","drop-after"); };
 window.endSubtaskDrag=event=>{
   event.currentTarget.closest(".subtask")?.classList.remove("dragging");
-  document.querySelectorAll(".subtask.drag-over").forEach(x=>x.classList.remove("drag-over"));
+  clearDropLines(".subtask.drop-before,.subtask.drop-after");
   draggedSubtask=null;
 };
 window.dropSubtask=(event,taskId,targetSubtaskId)=>{
   event.preventDefault();
   event.stopPropagation();
-  event.currentTarget.classList.remove("drag-over");
+  const el=event.currentTarget;
+  const position=dropPositionForEvent(event,el);
+  el.classList.remove("drop-before","drop-after");
   const task=tasks.find(t=>t.id===taskId);
   if(!task)return;
   let sourceSubtaskId=draggedSubtask?.subtaskId;
@@ -539,7 +695,7 @@ window.dropSubtask=(event,taskId,targetSubtaskId)=>{
     if(parts[0]===taskId)sourceSubtaskId=parts.slice(1).join(":");
   }
   if(!sourceSubtaskId || sourceSubtaskId===targetSubtaskId)return;
-  task.subtasks=DailyFlowOrder.reorderById(task.subtasks||[],sourceSubtaskId,targetSubtaskId);
+  task.subtasks=DailyFlowOrder.reorderById(task.subtasks||[],sourceSubtaskId,targetSubtaskId,position);
   save(); render(); showToast("Subtask order updated");
 };
 
@@ -551,6 +707,7 @@ function updateSelectedDateHeader(){
 }
 window.selectCalendarDate=date=>{
   selectedDate=date;
+  followRealToday=date===getToday();
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.view==="today"));
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.getElementById("todayView").classList.add("active");
@@ -558,7 +715,8 @@ window.selectCalendarDate=date=>{
 };
 
 function render(){
-  const todays=ordered(tasks.filter(t=>t.start<=selectedDate && t.due>=selectedDate));
+  const isLiveToday=followRealToday && selectedDate===getToday();
+  const todays=ordered(DailyFlowOrder.activeTasksForDate(tasks,selectedDate,isLiveToday));
   const visible=todays.filter(t=>currentFilter==="all" || (currentFilter==="done"?isTaskDone(t):!isTaskDone(t)));
   document.getElementById("todayTasks").innerHTML=visible.length?visible.map(renderTask).join(""):`<div class="empty">No tasks in this view.</div>`;
   document.getElementById("todayCount").textContent=todays.length;
@@ -581,14 +739,11 @@ function render(){
   renderCalendar();
   renderDeadlines();
   renderTimeline();
-
-  const sw=document.getElementById("notificationSwitch");
-  sw.classList.toggle("on",settings.notifications);
 }
 function renderCompleted(){
   const groups={};
-  tasks.filter(isTaskDone).forEach(t=>{
-    const d=t.completedDate||t.due||getToday();
+  tasks.filter(t=>Boolean(t.completedDate)).forEach(t=>{
+    const d=t.completedDate;
     if(!groups[d])groups[d]=[];
     groups[d].push(t);
   });
@@ -606,7 +761,7 @@ function buildCalendarHTML(large=false){
   for(let i=0;i<first.getDay();i++)cells.push("<div></div>");
   for(let d=1;d<=days;d++){
     const date=iso(new Date(y,m,d));
-    const has=tasks.some(t=>t.start<=date && t.due>=date);
+    const has=DailyFlowOrder.activeTasksForDate(tasks,date,date===getToday()).length>0 || tasks.some(t=>t.completedDate===date);
     cells.push(`<div class="date-cell ${date===getToday()?"today":""} ${date===selectedDate?"selected":""} ${has?"has-task":""}" onclick="selectCalendarDate('${date}')">${d}</div>`);
   }
   return `<div class="calendar-grid">${cells.join("")}</div>`;
@@ -650,9 +805,9 @@ window.movePendingSubtask=(i,direction)=>{
 };
 function resetForm(){
   ["taskName","notes","subtaskInput"].forEach(id=>document.getElementById(id).value="");
-  document.getElementById("category").value="School";
+  refreshCategoryField("School");
+  document.getElementById("newCategoryName").value="";
   document.getElementById("priority").value="Medium";
-  document.getElementById("reminder").value="Off";
   document.getElementById("focus").value="false";
   pendingSubtasks=[]; renderPendingSubtasks();
 }
@@ -665,9 +820,8 @@ function openModal(task=null){
     document.getElementById("taskName").value=task.title;
     document.getElementById("startDate").value=task.start;
     document.getElementById("dueDate").value=task.due;
-    document.getElementById("category").value=[...document.getElementById("category").options].some(o=>o.value===task.category)?task.category:"Other";
+    refreshCategoryField(task.category);
     document.getElementById("priority").value=task.priority;
-    document.getElementById("reminder").value=task.reminder;
     document.getElementById("focus").value=String(Boolean(task.focus));
     document.getElementById("notes").value=task.notes||"";
     pendingSubtasks=(task.subtasks||[]).map(x=>({...x}));
@@ -684,6 +838,25 @@ document.getElementById("openModal").onclick=()=>openModal();
 document.getElementById("closeModal").onclick=closeModal;
 document.getElementById("cancelModal").onclick=closeModal;
 modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
+document.getElementById("category").addEventListener("change",e=>{
+  pendingCategoryColor=categoryColor(e.target.value);
+  renderCategoryColorPicker();
+});
+
+document.getElementById("saveNewCategory").onclick=()=>{
+  const input=document.getElementById("newCategoryName");
+  const name=input.value.trim();
+  if(!name){showToast("Enter a category name");return;}
+  if(DailyFlowInlineEdit.addCategory(settings.categories,name)){
+    settings.categories=DailyFlowInlineEdit.normalizeCategories(settings.categories,tasks);
+    settings.categoryColors=DailyFlowInlineEdit.normalizeCategoryColors(settings.categoryColors,settings.categories);
+    settings.categoryColors[name]=DailyFlowInlineEdit.normalizeHexColor(pendingCategoryColor) || "#e7f5ff";
+    save(); refreshCategoryField(name); input.value=""; render(); showToast("Category saved");
+  }else{
+    const existing=settings.categories.find(c=>c.toLowerCase()===name.toLowerCase());
+    refreshCategoryField(existing||"School"); input.value=""; showToast("Category already saved");
+  }
+};
 
 document.getElementById("addSubtask").onclick=()=>{
   const input=document.getElementById("subtaskInput");
@@ -695,9 +868,14 @@ document.getElementById("saveTask").onclick=()=>{
   if(!title){showToast("Please enter a task name");return}
   const start=document.getElementById("startDate").value||selectedDate;
   const due=document.getElementById("dueDate").value||start;
+  const chosenCategory=document.getElementById("category").value;
+  DailyFlowInlineEdit.addCategory(settings.categories,chosenCategory);
+  settings.categories=DailyFlowInlineEdit.normalizeCategories(settings.categories,tasks);
+  settings.categoryColors=DailyFlowInlineEdit.normalizeCategoryColors(settings.categoryColors,settings.categories);
+  settings.categoryColors[chosenCategory]=DailyFlowInlineEdit.normalizeHexColor(pendingCategoryColor) || settings.categoryColors[chosenCategory] || "#e7f5ff";
   const data={
-    title,start,due,category:document.getElementById("category").value,
-    priority:document.getElementById("priority").value,reminder:document.getElementById("reminder").value,
+    title,start,due,category:chosenCategory,
+    priority:document.getElementById("priority").value,
     focus:document.getElementById("focus").value==="true",notes:document.getElementById("notes").value,
     subtasks:DailyFlowOrder.normalizeItemOrder(pendingSubtasks)
   };
@@ -721,6 +899,7 @@ document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.getElementById(b.dataset.view+"View").classList.add("active");
   if(b.dataset.view==="today"){
+    followRealToday=true;
     selectedDate=getToday();
     updateSelectedDateHeader();
   }else{
@@ -729,21 +908,37 @@ document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>{
   }
   render();
 });
-document.getElementById("notificationSwitch").onclick=()=>{
-  settings.notifications=!settings.notifications;save();render();showToast(settings.notifications?"Notifications on":"Notifications off");
-};
-document.getElementById("connectCalendar").onclick=()=>showToast("Apple Calendar sync can be connected in a native/app version.");
 document.getElementById("archiveDay").onclick=()=>{
-  const todays=tasks.filter(t=>t.start<=selectedDate && t.due>=selectedDate);
-  if(!todays.length){showToast("No tasks to complete");return}
-  todays.forEach(t=>{t.completed=true;t.completedDate=selectedDate;if(t.subtasks?.length)t.subtasks.forEach(s=>s.done=true);});
-  save();render();showToast("Selected day moved to Completed");
+  const before=tasks.filter(t=>!t.completedDate && t.start<=selectedDate && isTaskDone(t)).length;
+  tasks=DailyFlowOrder.finishDay(tasks,selectedDate);
+  save();render();
+  if(before){
+    showToast(`${before} checked task${before===1?"":"s"} moved to Completed. Unfinished tasks will carry forward.`);
+  }else{
+    showToast("No checked tasks to move. Unfinished tasks will carry forward.");
+  }
 };
 document.getElementById("toggleTimeline").onclick=()=>{
   const p=document.getElementById("timelinePanel");
   const open=p.style.display!=="none"; p.style.display=open?"none":"block";
   document.getElementById("toggleTimeline").textContent=open?"Show Timeline":"Hide Timeline";
 };
+
+function checkRealDateRollover(){
+  const nowToday=getToday();
+  if(nowToday===lastKnownToday)return;
+  const previousToday=lastKnownToday;
+  lastKnownToday=nowToday;
+  if(followRealToday && selectedDate===previousToday){
+    selectedDate=nowToday;
+    updateSelectedDateHeader();
+    render();
+    showToast("A new day has started. Unfinished tasks carried forward.");
+  }
+}
+setInterval(checkRealDateRollover,60000);
+window.addEventListener("focus",checkRealDateRollover);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkRealDateRollover();});
 
 updateSelectedDateHeader();
 normalizeOrder(); save(); render();

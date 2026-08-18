@@ -1,5 +1,5 @@
-const CACHE = "dailyflow-v4-task-subtask-order";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./order-utils.js", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CACHE = "dailyflow-v12-safari-click-fix";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./order-utils.js", "./task-inline-edit-utils.js", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();
