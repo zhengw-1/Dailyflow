@@ -83,8 +83,6 @@
   }
   .icon-btn,.secondary-btn{background:#fff;color:var(--text);border:1px solid var(--line)}
   .primary-btn{background:linear-gradient(135deg,var(--purple),#7f91f8);color:#fff;box-shadow:0 8px 20px rgba(143,124,246,.25)}
-  #restoreDataBtn{color:#6653c5;background:#f7f4ff;border-color:#e2dcf7}
-  #restoreDataBtn:hover{background:#eeeaff}
   .summary-grid{
     display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-bottom:22px
   }
@@ -183,6 +181,22 @@
   .task-progress span{display:block;height:100%;background:linear-gradient(90deg,var(--purple-2),var(--blue));width:0%}
   .empty{padding:42px;text-align:center;color:var(--muted);background:#fff;border:1px dashed #d9d8e4;border-radius:20px}
 
+  .settings-grid{display:grid;gap:18px;max-width:820px}
+  .settings-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
+  .settings-card h3{margin:0 0 9px}
+  .settings-card p{margin:0;color:var(--muted);line-height:1.55}
+  .backup-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .backup-action{border:0;border-radius:14px;padding:11px 15px;font-weight:700}
+  .backup-action.export{background:var(--purple-3);color:#6653c5}
+  .backup-action.restore{background:var(--blue-2);color:#4b89b4}
+  .backup-status{font-size:12px;color:#7f8294;margin-top:11px}
+  .backup-help{display:grid;gap:14px}
+  .backup-help-block{background:#fafafe;border:1px solid var(--line);border-radius:16px;padding:15px 16px}
+  .backup-help-block h4{margin:0 0 7px;font-size:14px}
+  .backup-help-block p{font-size:13px}
+  .backup-help-block ol{margin:8px 0 0 20px;padding:0;color:#6f7285;font-size:13px;line-height:1.7}
+
+
   .rightbar{padding:30px 22px 30px 0;display:flex;flex-direction:column;gap:18px}
   .mini-card{padding:18px}
   .mini-card h3{margin:0 0 12px;font-size:16px}
@@ -266,6 +280,7 @@
       <button class="nav-btn" data-view="calendar">Calendar</button>
       <button class="nav-btn" data-view="all">All Tasks</button>
       <button class="nav-btn" data-view="completed">Completed</button>
+      <button class="nav-btn" data-view="settings">Settings</button>
     </nav>
     <div class="sidebar-spacer"></div>
   </aside>
@@ -277,9 +292,7 @@
         <p id="dateText"></p>
       </div>
       <div class="top-actions">
-        <button class="secondary-btn" id="restoreDataBtn" type="button" title="Restore DailyFlow from a recovery JSON file">↺ Restore Data</button>
-        <input id="restoreDataInput" type="file" accept=".json,application/json" hidden>
-        <button class="secondary-btn" id="archiveDay">Finish Day</button>
+<button class="secondary-btn" id="archiveDay">Finish Day</button>
         <button class="primary-btn" id="openModal">+ Add Task</button>
       </div>
     </div>
@@ -341,6 +354,54 @@
       <div class="section-title"><h2>Completed History</h2></div>
       <div id="completedHistory"></div>
     </section>
+
+    <section id="settingsView" class="view">
+      <div class="section-title"><h2>Settings</h2></div>
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Backup & Restore</h3>
+          <p>Save a full copy of your DailyFlow data to your Mac, or restore it later if the app/browser storage is ever reset.</p>
+          <div class="backup-actions">
+            <button class="backup-action export" id="exportBackupBtn" type="button">Export Backup</button>
+            <button class="backup-action restore" id="restoreBackupBtn" type="button">Restore Backup</button>
+            <input id="restoreBackupInput" type="file" accept=".json,application/json" hidden>
+          </div>
+          <div class="backup-status" id="backupStatus">No backup exported from this device yet.</div>
+        </div>
+
+        <div class="settings-card">
+          <h3>How backup works</h3>
+          <div class="backup-help">
+            <div class="backup-help-block">
+              <h4>What the backup saves</h4>
+              <p>It saves all current tasks, subtasks, start and due dates, priorities, categories, category colors, completed history, and DailyFlow settings into one usable JSON file.</p>
+            </div>
+            <div class="backup-help-block">
+              <h4>How to make a backup</h4>
+              <ol>
+                <li>Open <strong>Settings</strong>.</li>
+                <li>Click <strong>Export Backup</strong>.</li>
+                <li>DailyFlow downloads a file named like <strong>DailyFlow_Backup_2026-08-18.json</strong>.</li>
+                <li>Keep the file somewhere safe. Make a new backup whenever you want an updated copy.</li>
+              </ol>
+            </div>
+            <div class="backup-help-block">
+              <h4>How to restore</h4>
+              <ol>
+                <li>Open <strong>Settings</strong>.</li>
+                <li>Click <strong>Restore Backup</strong>.</li>
+                <li>Select one of your DailyFlow backup JSON files.</li>
+                <li>Confirm the restore. The selected backup replaces the DailyFlow data currently stored in this app.</li>
+              </ol>
+            </div>
+            <div class="backup-help-block">
+              <h4>Privacy</h4>
+              <p>Your backup file stays on your Mac. It is not uploaded to GitHub and other people using DailyFlow cannot see your tasks.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <aside class="rightbar">
@@ -390,8 +451,8 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="./order-utils.js?v=16"></script>
-<script src="./task-inline-edit-utils.js?v=16"></script>
+<script src="./order-utils.js?v=17"></script>
+<script src="./task-inline-edit-utils.js?v=17"></script>
 <script>
 const STORAGE_KEY = "dailyflow_tasks_v1";
 const ARCHIVE_KEY = "dailyflow_archive_v1";
@@ -710,6 +771,8 @@ function updateSelectedDateHeader(){
   document.getElementById("dateText").textContent=d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
 }
 window.selectCalendarDate=date=>{
+  document.getElementById("archiveDay").style.display="";
+  document.getElementById("openModal").style.display="";
   selectedDate=date;
   followRealToday=date===getToday();
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.view==="today"));
@@ -907,14 +970,18 @@ document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>{
   b.classList.add("active");
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.getElementById(b.dataset.view+"View").classList.add("active");
+  const isSettings=b.dataset.view==="settings";
+  document.getElementById("archiveDay").style.display=isSettings?"none":"";
+  document.getElementById("openModal").style.display=isSettings?"none":"";
   if(b.dataset.view==="today"){
     followRealToday=true;
     selectedDate=getToday();
     updateSelectedDateHeader();
   }else{
     document.getElementById("pageTitle").textContent=b.textContent.trim().replace(/\d+$/," ").trim();
-    document.getElementById("dateText").textContent="";
+    document.getElementById("dateText").textContent=isSettings?"Backup, restore, and DailyFlow help":"";
   }
+  if(isSettings)updateBackupStatus();
   render();
 });
 document.getElementById("archiveDay").onclick=()=>{
@@ -954,55 +1021,81 @@ normalizeOrder(); save(); render();
 </script>
 <script>
 
-// Temporary one-time recovery tool.
-// The selected JSON stays local on this Mac and is not uploaded by DailyFlow.
-document.getElementById("restoreDataBtn").addEventListener("click",()=>{
-  const ok=confirm(
-    "Restore DailyFlow from your recovered JSON file?\n\n" +
-    "This will replace the tasks currently stored in this DailyFlow app with the contents of that backup."
-  );
-  if(ok) document.getElementById("restoreDataInput").click();
+
+function buildDailyFlowBackup(){
+  return {
+    format:"DailyFlow Backup",
+    version:1,
+    exportedAt:new Date().toISOString(),
+    tasks,
+    archive,
+    settings
+  };
+}
+function exportDailyFlowBackup(){
+  const backup=buildDailyFlowBackup();
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const d=new Date();
+  const stamp=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`DailyFlow_Backup_${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),0);
+  settings.lastBackupExportedAt=new Date().toISOString();
+  save();
+  updateBackupStatus();
+  showToast("Backup exported");
+}
+function validateDailyFlowBackup(raw){
+  const validFormat=raw?.format==="DailyFlow Backup" || raw?.format==="DailyFlow Recovery Backup";
+  if(
+    !validFormat ||
+    !Array.isArray(raw?.tasks) ||
+    !raw?.archive || typeof raw.archive!=="object" ||
+    !raw?.settings || typeof raw.settings!=="object"
+  ) throw new Error("This is not a valid DailyFlow backup file.");
+  return raw;
+}
+async function restoreDailyFlowBackup(file){
+  const backup=validateDailyFlowBackup(JSON.parse(await file.text()));
+  tasks=DailyFlowOrder.normalizeItemOrder(backup.tasks).map(task=>({
+    ...task,
+    subtasks:DailyFlowOrder.normalizeItemOrder(task.subtasks||[])
+  }));
+  archive=backup.archive;
+  settings=backup.settings;
+  settings.categories=DailyFlowInlineEdit.normalizeCategories(settings.categories||["School","Work","Personal"],tasks);
+  settings.categoryColors=DailyFlowInlineEdit.normalizeCategoryColors(settings.categoryColors||{},settings.categories);
+  save();
+  render();
+}
+function updateBackupStatus(){
+  const el=document.getElementById("backupStatus");
+  if(!el)return;
+  el.textContent=settings.lastBackupExportedAt
+    ? `Last backup exported: ${new Date(settings.lastBackupExportedAt).toLocaleString()}`
+    : "No backup exported from this device yet.";
+}
+document.getElementById("exportBackupBtn").addEventListener("click",exportDailyFlowBackup);
+document.getElementById("restoreBackupBtn").addEventListener("click",()=>{
+  if(confirm("Restore DailyFlow from a backup file?\n\nThis replaces the tasks and settings currently stored in this app with the selected backup.")){
+    document.getElementById("restoreBackupInput").click();
+  }
 });
-
-document.getElementById("restoreDataInput").addEventListener("change",async event=>{
-  const input=event.target;
-  const file=input.files && input.files[0];
-  if(!file) return;
+document.getElementById("restoreBackupInput").addEventListener("change",async e=>{
+  const input=e.target,file=input.files&&input.files[0];
+  if(!file)return;
   try{
-    const backup=JSON.parse(await file.text());
-    if(
-      backup?.format!=="DailyFlow Recovery Backup" ||
-      !Array.isArray(backup?.tasks) ||
-      !backup?.archive || typeof backup.archive!=="object" ||
-      !backup?.settings || typeof backup.settings!=="object"
-    ){
-      throw new Error("This is not a valid DailyFlow recovery backup.");
-    }
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(backup.tasks));
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(backup.archive));
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(backup.settings));
-
-    tasks=DailyFlowOrder.normalizeItemOrder(backup.tasks).map(task=>({
-      ...task,
-      subtasks:DailyFlowOrder.normalizeItemOrder(task.subtasks||[])
-    }));
-    archive=backup.archive;
-    settings=backup.settings;
-    settings.categories=DailyFlowInlineEdit.normalizeCategories(
-      settings.categories||["School","Work","Personal"], tasks
-    );
-    settings.categoryColors=DailyFlowInlineEdit.normalizeCategoryColors(
-      settings.categoryColors||{}, settings.categories
-    );
-
-    save();
-    render();
+    await restoreDailyFlowBackup(file);
     input.value="";
-    alert("DailyFlow data restored. Your recovered tasks and completed history are back.");
+    alert("DailyFlow backup restored successfully.");
   }catch(err){
     input.value="";
-    alert(err?.message || "DailyFlow could not restore that file.");
+    alert(err?.message||"DailyFlow could not restore that backup.");
   }
 });
 
