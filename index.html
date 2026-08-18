@@ -369,7 +369,7 @@
         <div class="color-choice-row" id="categoryColorPresets"></div>
       </div>
       <div class="field"><label>Priority</label>
-        <select id="priority"><option>Medium</option><option>High</option><option>Low</option></select>
+        <select id="priority"><option>Low</option><option>Medium</option><option>High</option></select>
       </div>
       <div class="field"><label>Daily Focus</label>
         <select id="focus"><option value="false">No</option><option value="true">Yes</option></select>
@@ -715,6 +715,11 @@ window.selectCalendarDate=date=>{
 };
 
 function render(){
+  const overduePriorityResult=DailyFlowOrder.applyOverduePriority(tasks,getToday());
+  if(overduePriorityResult.changed){
+    tasks=overduePriorityResult.tasks;
+    save();
+  }
   const isLiveToday=followRealToday && selectedDate===getToday();
   const todays=ordered(DailyFlowOrder.activeTasksForDate(tasks,selectedDate,isLiveToday));
   const visible=todays.filter(t=>currentFilter==="all" || (currentFilter==="done"?isTaskDone(t):!isTaskDone(t)));
@@ -807,7 +812,7 @@ function resetForm(){
   ["taskName","notes","subtaskInput"].forEach(id=>document.getElementById(id).value="");
   refreshCategoryField("School");
   document.getElementById("newCategoryName").value="";
-  document.getElementById("priority").value="Medium";
+  document.getElementById("priority").value="Low";
   document.getElementById("focus").value="false";
   pendingSubtasks=[]; renderPendingSubtasks();
 }

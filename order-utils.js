@@ -50,5 +50,18 @@
     return Boolean(!task.completedDate && !taskIsDone(task) && task.due && task.due < date);
   }
 
-  return { normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone };
+
+  function applyOverduePriority(tasks, date) {
+    let changed = false;
+    const updated = tasks.map(task => {
+      if (!task.overduePriorityApplied && isOverdue(task, date)) {
+        changed = true;
+        return { ...task, priority: 'High', overduePriorityApplied: true };
+      }
+      return task;
+    });
+    return { tasks: updated, changed };
+  }
+
+  return { normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone, applyOverduePriority };
 });
