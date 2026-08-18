@@ -83,6 +83,8 @@
   }
   .icon-btn,.secondary-btn{background:#fff;color:var(--text);border:1px solid var(--line)}
   .primary-btn{background:linear-gradient(135deg,var(--purple),#7f91f8);color:#fff;box-shadow:0 8px 20px rgba(143,124,246,.25)}
+  #restoreDataBtn{color:#6653c5;background:#f7f4ff;border-color:#e2dcf7}
+  #restoreDataBtn:hover{background:#eeeaff}
   .summary-grid{
     display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-bottom:22px
   }
@@ -275,6 +277,8 @@
         <p id="dateText"></p>
       </div>
       <div class="top-actions">
+        <button class="secondary-btn" id="restoreDataBtn" type="button" title="Restore DailyFlow from a recovery JSON file">↺ Restore Data</button>
+        <input id="restoreDataInput" type="file" accept=".json,application/json" hidden>
         <button class="secondary-btn" id="archiveDay">Finish Day</button>
         <button class="primary-btn" id="openModal">+ Add Task</button>
       </div>
@@ -949,6 +953,59 @@ updateSelectedDateHeader();
 normalizeOrder(); save(); render();
 </script>
 <script>
+
+// Temporary one-time recovery tool.
+// The selected JSON stays local on this Mac and is not uploaded by DailyFlow.
+document.getElementById("restoreDataBtn").addEventListener("click",()=>{
+  const ok=confirm(
+    "Restore DailyFlow from your recovered JSON file?\n\n" +
+    "This will replace the tasks currently stored in this DailyFlow app with the contents of that backup."
+  );
+  if(ok) document.getElementById("restoreDataInput").click();
+});
+
+document.getElementById("restoreDataInput").addEventListener("change",async event=>{
+  const input=event.target;
+  const file=input.files && input.files[0];
+  if(!file) return;
+  try{
+    const backup=JSON.parse(await file.text());
+    if(
+      backup?.format!=="DailyFlow Recovery Backup" ||
+      !Array.isArray(backup?.tasks) ||
+      !backup?.archive || typeof backup.archive!=="object" ||
+      !backup?.settings || typeof backup.settings!=="object"
+    ){
+      throw new Error("This is not a valid DailyFlow recovery backup.");
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(backup.tasks));
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(backup.archive));
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(backup.settings));
+
+    tasks=DailyFlowOrder.normalizeItemOrder(backup.tasks).map(task=>({
+      ...task,
+      subtasks:DailyFlowOrder.normalizeItemOrder(task.subtasks||[])
+    }));
+    archive=backup.archive;
+    settings=backup.settings;
+    settings.categories=DailyFlowInlineEdit.normalizeCategories(
+      settings.categories||["School","Work","Personal"], tasks
+    );
+    settings.categoryColors=DailyFlowInlineEdit.normalizeCategoryColors(
+      settings.categoryColors||{}, settings.categories
+    );
+
+    save();
+    render();
+    input.value="";
+    alert("DailyFlow data restored. Your recovered tasks and completed history are back.");
+  }catch(err){
+    input.value="";
+    alert(err?.message || "DailyFlow could not restore that file.");
+  }
+});
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
 }
