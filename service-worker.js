@@ -1,5 +1,5 @@
-const CACHE = "dailyflow-v18-ordering-inline-edit";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./order-utils.js?v=17", "./task-inline-edit-utils.js?v=17", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CACHE = "dailyflow-v19-ordering-inline-edit-fixed";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./order-utils.js?v=18", "./task-inline-edit-utils.js?v=18", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();

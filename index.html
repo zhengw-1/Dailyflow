@@ -452,8 +452,8 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="./order-utils.js?v=17"></script>
-<script src="./task-inline-edit-utils.js?v=17"></script>
+<script src="./order-utils.js?v=18"></script>
+<script src="./task-inline-edit-utils.js?v=18"></script>
 <script>
 const STORAGE_KEY = "dailyflow_tasks_v1";
 const ARCHIVE_KEY = "dailyflow_archive_v1";
@@ -503,6 +503,13 @@ tasks = DailyFlowOrder.normalizeItemOrder(tasks).map(task => ({
   ...task,
   subtasks: DailyFlowOrder.normalizeItemOrder(task.subtasks || [])
 }));
+
+(function(){
+  if(!window.DailyFlowOrder || typeof window.DailyFlowOrder.orderForDisplay!=="function"){
+    console.error("DailyFlowOrder failed to load. Please reload the app.");
+  }
+})();
+
 function ordered(list){ return DailyFlowOrder.orderForDisplay(list, selectedDate || getToday()); }
 function normalizeOrder(){ tasks=DailyFlowOrder.normalizeItemOrder(tasks); }
 
