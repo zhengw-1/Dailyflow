@@ -268,6 +268,7 @@
     .form-grid{grid-template-columns:1fr}
     .field.full{grid-column:auto}
   }
+.subtask-inline-editing{outline:1px solid var(--purple-2);border-radius:6px;padding:1px 4px;background:#fff;cursor:text}
 </style>
 </head>
 <body>
@@ -485,7 +486,7 @@ const defaults = [
   ]}
 ];
 
-let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || defaults;
+let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [];
 let archive = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || "{}");
 let settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
 settings.categories = DailyFlowInlineEdit.normalizeCategories(settings.categories || ["School","Work","Personal"], tasks);
@@ -502,7 +503,7 @@ tasks = DailyFlowOrder.normalizeItemOrder(tasks).map(task => ({
   ...task,
   subtasks: DailyFlowOrder.normalizeItemOrder(task.subtasks || [])
 }));
-function ordered(list){ return DailyFlowOrder.normalizeItemOrder(list); }
+function ordered(list){ return DailyFlowOrder.orderForDisplay(list, selectedDate || getToday()); }
 function normalizeOrder(){ tasks=DailyFlowOrder.normalizeItemOrder(tasks); }
 
 function save(){
@@ -571,6 +572,55 @@ window.chooseCategoryColor=value=>{
   pendingCategoryColor=clean;
   renderCategoryColorPicker();
 };
+
+function enableSubtaskDoubleClickEditing(){
+  document.querySelectorAll(".subtask[data-task-id] > span[data-subtask-id]").forEach(span=>{
+    if(span.dataset.dblEditReady==="1") return;
+    span.dataset.dblEditReady="1";
+    span.title="Double-click to edit";
+    span.addEventListener("dblclick",event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      if(span.contentEditable==="true") return;
+      const task=tasks.find(t=>t.id===span.closest(".subtask")?.dataset.taskId);
+      const sub=task?.subtasks?.find(s=>s.id===span.dataset.subtaskId);
+      if(!sub)return;
+      const original=sub.title;
+      span.contentEditable="true";
+      span.classList.add("subtask-inline-editing");
+      span.textContent=original;
+      span.focus();
+      const range=document.createRange();
+      range.selectNodeContents(span);
+      range.collapse(false);
+      const sel=window.getSelection();
+      sel.removeAllRanges(); sel.addRange(range);
+
+      const finish=(saveChanges=true)=>{
+        if(span.contentEditable!=="true")return;
+        const value=span.textContent.trim();
+        if(saveChanges && value) sub.title=value;
+        else if(!value) span.textContent=original;
+        span.contentEditable="false";
+        span.classList.remove("subtask-inline-editing");
+        if(saveChanges && value && value!==original) save();
+        render();
+      };
+
+      span.addEventListener("keydown",e=>{
+        if(e.key==="Enter"){
+          e.preventDefault();
+          finish(true);
+        }else if(e.key==="Escape"){
+          e.preventDefault();
+          finish(false);
+        }
+      });
+      span.addEventListener("blur",()=>finish(true),{once:true});
+    });
+  });
+}
+
 function renderTask(task){
   const pct=taskPercent(task);
   const overdue=DailyFlowOrder.isOverdue(task,selectedDate);
@@ -607,10 +657,10 @@ function renderTask(task){
           <div class="task-progress"><span style="width:${pct}%"></span></div>
           <div class="subtasks">
             ${ordered(task.subtasks).map(s=>`
-              <div class="subtask ${s.done?"done":""}" data-subtask-id="${s.id}" ondragover="allowSubtaskDrop(event,'${task.id}','${s.id}')" ondragleave="clearSubtaskDrop(event)" ondrop="dropSubtask(event,'${task.id}','${s.id}')">
+              <div class="subtask ${s.done?"done":""}" data-task-id="${task.id}" data-subtask-id="${s.id}" ondragover="allowSubtaskDrop(event,'${task.id}','${s.id}')" ondragleave="clearSubtaskDrop(event)" ondrop="dropSubtask(event,'${task.id}','${s.id}')">
                 <button class="subtask-drag-handle" draggable="true" title="Drag to reorder subtask" ondragstart="startSubtaskDrag(event,'${task.id}','${s.id}')" ondragend="endSubtaskDrag(event)">⋮⋮</button>
                 <button class="mini-check ${s.done?"done":""}" onclick="toggleSubtask('${task.id}','${s.id}')"></button>
-                <span>${escapeHtml(s.title)}</span>
+                <span data-subtask-id="${s.id}">${escapeHtml(s.title)}</span>
               </div>`).join("")}
           </div>`:""}
         <div class="quick-subtask-row">
@@ -811,6 +861,7 @@ function render(){
   renderCalendar();
   renderDeadlines();
   renderTimeline();
+  requestAnimationFrame(enableSubtaskDoubleClickEditing);
 }
 function renderCompleted(){
   const groups={};
@@ -955,7 +1006,7 @@ document.getElementById("saveTask").onclick=()=>{
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){Object.assign(t,data); syncTaskCompletion(t); t.completedDate=isTaskDone(t)?(t.completedDate||getToday()):null;}
   }else{
-    tasks.push({id:crypto.randomUUID(),completed:false,completedDate:null,order:tasks.length,...data});
+    tasks.push({id:crypto.randomUUID(),createdAt:new Date().toISOString(),completed:false,completedDate:null,order:tasks.length,...data});
   }
   const wasEditing=Boolean(editingTaskId);
   save();closeModal();render();showToast(wasEditing?"Task updated":"Task added");

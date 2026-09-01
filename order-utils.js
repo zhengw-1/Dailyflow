@@ -63,5 +63,40 @@
     return { tasks: updated, changed };
   }
 
-  return { normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone, applyOverduePriority };
+  function orderForDisplay(items, date) {
+    const today = date || new Date().toISOString().slice(0, 10);
+    const list = (items || []).map((item, index) => ({ ...item, __displayIndex: index }));
+    const overdue = [];
+    const starred = [];
+    const newest = [];
+    const normal = [];
+
+    for (const item of list) {
+      const done = taskIsDone(item);
+      const isOverdueTask = Boolean(!item.completedDate && !done && item.due && item.due < today);
+      if (isOverdueTask) {
+        overdue.push(item);
+      } else if (item.focus) {
+        starred.push(item);
+      } else if (item.createdAt) {
+        newest.push(item);
+      } else {
+        normal.push(item);
+      }
+    }
+
+    const storedOrder = (a, b) => (a.order ?? a.__displayIndex) - (b.order ?? b.__displayIndex);
+    const newestFirst = (a, b) =>
+      String(b.createdAt || "").localeCompare(String(a.createdAt || "")) || storedOrder(a, b);
+
+    overdue.sort(storedOrder);
+    starred.sort(storedOrder);
+    newest.sort(newestFirst);
+    normal.sort(storedOrder);
+
+    return [...overdue, ...starred, ...newest, ...normal]
+      .map(({ __displayIndex, ...item }) => item);
+  }
+
+  return { orderForDisplay, normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone, applyOverduePriority };
 });
