@@ -38,9 +38,11 @@
   }
   function normalizeCategories(saved,tasks){
     const presets=['School','Work','Personal'];
-    const out=[...presets];
-    const seen=new Set(out.map(x=>x.toLowerCase()));
-    for(const raw of [...(saved||[]), ...(tasks||[]).map(t=>t&&t.category)]){
+    const savedList=Array.isArray(saved) ? saved : [];
+    const base=savedList.length ? savedList : presets;
+    const out=[];
+    const seen=new Set();
+    for(const raw of [...base, ...(tasks||[]).map(t=>t&&t.category)]){
       const clean=String(raw||'').trim();
       if(!clean) continue;
       const key=clean.toLowerCase();

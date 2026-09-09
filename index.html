@@ -110,7 +110,7 @@
   .task:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
   .task.overdue-card{background:#fff;border:2px solid #e87989;box-shadow:0 8px 20px rgba(191,95,111,.06)}
   .task.overdue-card:hover{box-shadow:0 14px 34px rgba(191,95,111,.11)}
-  .task-row{display:grid;grid-template-columns:auto auto 1fr auto;gap:12px;align-items:start}
+  .task-row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:12px;align-items:start}
   .drag-handle{border:0;background:transparent;color:#a5a1bb;font-size:18px;line-height:22px;padding:0 2px;cursor:grab;user-select:none}
   .drag-handle:active{cursor:grabbing}
   .task.dragging{opacity:.45}
@@ -124,9 +124,9 @@
   }
   .check.checked{background:linear-gradient(135deg,var(--purple),var(--blue));border-color:transparent}
   .check.checked::after{content:"✓";font-weight:800;font-size:14px}
-  .task-title{font-weight:700}
+  .task-title{font-weight:700;min-width:0;overflow-wrap:anywhere}
   .task.completed .task-title{text-decoration:line-through;color:var(--muted)}
-  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;min-width:0}
   .pill{font-size:12px;padding:5px 8px;border-radius:999px;background:#f5f5fa;color:#73778b}
   .pill.purple{background:var(--purple-3);color:#6f5cd8}
   .pill.blue{background:var(--blue-2);color:#4b89b4}
@@ -151,6 +151,12 @@
   .date-range-inline{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
   .custom-category-row{display:flex;gap:8px;align-items:center}
   .custom-category-row input{flex:1;min-width:0}
+  .category-manager{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .category-manager-row{display:grid;grid-template-columns:minmax(0,1fr) 42px auto;gap:8px;align-items:center}
+  .category-manager-row input[type="text"]{min-width:0}
+  .category-manager-row input[type="color"]{width:42px;height:42px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#fbfbfe}
+  .category-manager-row button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-weight:700;color:#6f7285}
+  .category-manager-row button:hover{border-color:var(--purple-2);color:var(--purple)}
   .priority-pill{color:#73778b}
   .priority-pill .pill-visible-text{font-weight:650}
   .priority-pill.priority-low{background:#e8f6ec;color:#73778b;border-color:#cfe8d6}
@@ -165,7 +171,8 @@
   .task-actions{display:flex;gap:6px}
   .task-actions button{border:0;background:#f7f7fb;border-radius:10px;width:32px;height:32px;color:#7f8294}
   .subtasks{margin:14px 0 0 34px;padding-top:12px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
-  .subtask{display:flex;align-items:center;gap:10px;font-size:14px;padding:5px 7px;border-radius:10px}
+  .subtask{display:flex;align-items:flex-start;gap:10px;font-size:14px;padding:5px 7px;border-radius:10px;min-width:0}
+  .subtask > span{min-width:0;overflow-wrap:anywhere;word-break:break-word}
   .subtask.dragging{opacity:.45}
   .subtask{position:relative}
   .subtask.drop-before::before,.subtask.drop-after::after{content:"";position:absolute;left:4px;right:4px;height:2px;background:var(--blue);border-radius:999px}
@@ -257,16 +264,53 @@
   }
   .toast.show{opacity:1;transform:translateY(0)}
   @media(max-width:1100px){
-    .app{grid-template-columns:210px 1fr}
+    .app{grid-template-columns:210px minmax(0,1fr)}
     .rightbar{display:none}
+    .main{padding:24px}
+    .summary-grid{grid-template-columns:1fr}
   }
   @media(max-width:760px){
     .app{grid-template-columns:1fr}
-    .sidebar{display:none}
-    .main{padding:20px}
+    .sidebar{display:block;padding:12px 14px;gap:10px;border-right:0;border-bottom:1px solid rgba(255,255,255,.8)}
+    .brand{font-size:18px}
+    .brand-mark{width:34px;height:34px;border-radius:11px}
+    .nav{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px}
+    .nav button{flex:0 0 auto;padding:9px 11px;white-space:nowrap}
+    .sidebar-spacer{display:none}
+    .main{padding:16px;min-width:0}
+    .topbar{align-items:flex-start;flex-wrap:wrap}
+    .top-actions{width:100%;flex-wrap:wrap}
+    .top-actions button{flex:1 1 140px}
     .summary-grid{grid-template-columns:1fr}
     .form-grid{grid-template-columns:1fr}
     .field.full{grid-column:auto}
+    .task{padding:13px}
+    .task-row{grid-template-columns:auto auto minmax(0,1fr);gap:8px}
+    .task-actions{grid-column:1/-1;justify-content:flex-end;padding-top:2px}
+    .meta{gap:6px}
+    .inline-control-pill{max-width:100%}
+    .quick-subtask-row{margin-left:0;align-items:stretch;flex-wrap:wrap}
+    .quick-subtask-editor{min-width:0}
+    .quick-subtask-editor input{min-width:0}
+    .subtasks{margin-left:0}
+    .subtask{gap:7px}
+    .subtask-drag-handle{flex:0 0 auto}
+    .modal{padding:10px}
+    .modal-panel{padding:18px;border-radius:18px;max-height:94vh}
+    .category-manager-row{grid-template-columns:minmax(0,1fr) 40px auto}
+  }
+  @media(max-width:430px){
+    .main{padding:12px}
+    .topbar h1{font-size:24px}
+    .top-actions button{flex-basis:100%}
+    .task-row{grid-template-columns:auto minmax(0,1fr)}
+    .drag-handle{grid-row:1}
+    .check{grid-row:1}
+    .task-actions{grid-column:1/-1}
+    .quick-subtask-editor{flex-basis:100%}
+    .category-manager-row{grid-template-columns:1fr auto}
+    .category-manager-row input[type="color"]{grid-column:2;grid-row:1}
+    .category-manager-row button{grid-column:1/-1}
   }
 .subtask-inline-editing{outline:1px solid var(--purple-2);border-radius:6px;padding:1px 4px;background:#fff;cursor:text}
 </style>
@@ -434,6 +478,10 @@
         <label>Category color</label>
         <div class="color-choice-row" id="categoryColorPresets"></div>
       </div>
+      <div class="field full category-manager-field">
+        <label>Edit category options</label>
+        <div class="category-manager" id="categoryManager"></div>
+      </div>
       <div class="field"><label>Priority</label>
         <select id="priority"><option>Low</option><option>Medium</option><option>High</option></select>
       </div>
@@ -452,8 +500,8 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="./order-utils.js?v=18"></script>
-<script src="./task-inline-edit-utils.js?v=18"></script>
+<script src="./order-utils.js?v=20"></script>
+<script src="./task-inline-edit-utils.js?v=20"></script>
 <script>
 const STORAGE_KEY = "dailyflow_tasks_v1";
 const ARCHIVE_KEY = "dailyflow_archive_v1";
@@ -469,22 +517,6 @@ let lastKnownToday = selectedDate;
 let followRealToday = true;
 const plusDays = n => { const d=new Date(); d.setDate(d.getDate()+n); return iso(d); };
 
-const defaults = [
-  {id:crypto.randomUUID(),title:"Complete discussion board reply",start:getToday(),due:getToday(),category:"School",priority:"High",focus:true,completed:false,notes:"",subtasks:[
-    {id:crypto.randomUUID(),title:"Read peer response",done:true},
-    {id:crypto.randomUUID(),title:"Write reply in my voice",done:false}
-  ]},
-  {id:crypto.randomUUID(),title:"Organize portfolio images",start:getToday(),due:plusDays(3),category:"School",priority:"Medium",focus:true,completed:false,notes:"",subtasks:[
-    {id:crypto.randomUUID(),title:"Select final images",done:false},
-    {id:crypto.randomUUID(),title:"Rename files",done:false},
-    {id:crypto.randomUUID(),title:"Upload to portfolio",done:false}
-  ]},
-  {id:crypto.randomUUID(),title:"Drink water and take a break",start:getToday(),due:getToday(),category:"Personal",priority:"Low",focus:false,completed:true,notes:"",subtasks:[]},
-  {id:crypto.randomUUID(),title:"Prepare co-op documents",start:plusDays(1),due:plusDays(7),category:"Work",priority:"Medium",focus:false,completed:false,notes:"",subtasks:[
-    {id:crypto.randomUUID(),title:"Check onboarding email",done:false},
-    {id:crypto.randomUUID(),title:"Prepare ID documents",done:false}
-  ]}
-];
 
 let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [];
 let archive = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || "{}");
@@ -562,6 +594,7 @@ function refreshCategoryField(selected){
   el.value=settings.categories.includes(chosen)?chosen:"School";
   pendingCategoryColor=categoryColor(el.value);
   renderCategoryColorPicker();
+  renderCategoryManager();
 }
 function renderCategoryColorPicker(){
   const host=document.getElementById("categoryColorPresets"); if(!host)return;
@@ -578,6 +611,52 @@ window.chooseCategoryColor=value=>{
   const clean=DailyFlowInlineEdit.normalizeHexColor(value); if(!clean)return;
   pendingCategoryColor=clean;
   renderCategoryColorPicker();
+};
+function renderCategoryManager(){
+  const host=document.getElementById("categoryManager"); if(!host)return;
+  host.innerHTML=settings.categories.map(category=>`
+    <div class="category-manager-row" data-category="${escapeHtml(category)}">
+      <input type="text" value="${escapeHtml(category)}" aria-label="Category name">
+      <input type="color" value="${DailyFlowInlineEdit.normalizeHexColor(categoryColor(category))||"#e7f5ff"}" aria-label="Category color">
+      <button type="button" onclick="saveCategoryEdit(this)">Save</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:-6px;margin-bottom:3px">
+      <button type="button" class="secondary-btn" style="padding:7px 10px;font-size:12px" onclick="deleteCategoryOption(this)">Delete category</button>
+    </div>`).join("");
+}
+window.saveCategoryEdit=button=>{
+  const row=button.closest('.category-manager-row'); if(!row)return;
+  const oldName=row.dataset.category;
+  const name=row.querySelector('input[type="text"]').value.trim();
+  const color=DailyFlowInlineEdit.normalizeHexColor(row.querySelector('input[type="color"]').value)||'#e7f5ff';
+  if(!name){showToast('Category name cannot be empty');return;}
+  const duplicate=settings.categories.some(c=>c!==oldName && c.toLowerCase()===name.toLowerCase());
+  if(duplicate){showToast('That category already exists');return;}
+  settings.categories=settings.categories.map(c=>c===oldName?name:c);
+  settings.categoryColors=settings.categoryColors||{};
+  delete settings.categoryColors[oldName];
+  settings.categoryColors[name]=color;
+  tasks.forEach(t=>{if(t.category===oldName)t.category=name;});
+  save();
+  refreshCategoryField(editingTaskId ? (tasks.find(t=>t.id===editingTaskId)?.category||name) : name);
+  renderCategoryManager();
+  render();
+  showToast('Category updated');
+};
+window.deleteCategoryOption=button=>{
+  const row=button.closest('div[style]')?.previousElementSibling;
+  const name=row?.dataset.category; if(!name)return;
+  if(settings.categories.length<=1){showToast('Keep at least one category');return;}
+  const used=tasks.some(t=>t.category===name);
+  if(used){showToast('This category is used by a task. Change those tasks first.');return;}
+  if(!confirm(`Delete the category “${name}”?`))return;
+  settings.categories=settings.categories.filter(c=>c!==name);
+  delete settings.categoryColors?.[name];
+  save();
+  refreshCategoryField(settings.categories[0]);
+  renderCategoryManager();
+  render();
+  showToast('Category deleted');
 };
 
 function enableSubtaskDoubleClickEditing(){
@@ -693,6 +772,11 @@ function escapeHtml(str){
 window.toggleTask=id=>{
   const t=tasks.find(x=>x.id===id); if(!t)return;
   const next=!isTaskDone(t);
+  if(next){
+    t.checkedDisplayBucket=DailyFlowOrder.displayBucket(t,getToday());
+  }else{
+    delete t.checkedDisplayBucket;
+  }
   t.completed=next;
   if(!next)t.completedDate=null;
   if(t.subtasks?.length) t.subtasks.forEach(s=>s.done=next);
@@ -700,8 +784,12 @@ window.toggleTask=id=>{
 };
 window.toggleSubtask=(tid,sid)=>{
   const t=tasks.find(x=>x.id===tid); const s=t?.subtasks.find(x=>x.id===sid); if(!s)return;
-  s.done=!s.done; syncTaskCompletion(t);
-  if(!isTaskDone(t))t.completedDate=null;
+  s.done=!s.done;
+  const nextDone=s.done;
+  if(nextDone && !isTaskDone(t)) t.checkedDisplayBucket=DailyFlowOrder.displayBucket(t,getToday());
+  syncTaskCompletion(t);
+  if(isTaskDone(t) && !t.checkedDisplayBucket) t.checkedDisplayBucket=DailyFlowOrder.displayBucket(t,getToday());
+  if(!isTaskDone(t)){ t.completedDate=null; delete t.checkedDisplayBucket; }
   save(); render();
 };
 window.deleteTask=id=>{

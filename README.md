@@ -47,3 +47,10 @@ It will then open from the Dock like a separate app. Your tasks are saved locall
 - Category pills size to the selected category text instead of the longest category in the list.
 - Task cards show start date first and due date second, including the year.
 - Only the due date is editable directly on the task card; use Edit to change both dates.
+
+## v20 check, category, and responsive update
+- Checking or unchecking a task no longer sends it to the bottom; checked tasks keep their display-order bucket until they are reopened or moved to Completed with Finish Day.
+- Edit Task now includes category management: rename a category, change its color, or delete an unused category.
+- Renaming a category updates the tasks that use it; task data is not deleted.
+- The layout adapts for desktop, tablet, and phone widths, including wrapping task titles, metadata, quick-subtask controls, and subtask text without clipping.
+- Updated the service-worker/cache version to prevent older JavaScript from being mixed with the new app.

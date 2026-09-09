@@ -63,6 +63,17 @@
     return { tasks: updated, changed };
   }
 
+
+  function displayBucket(item, date) {
+    const today = date || new Date().toISOString().slice(0, 10);
+    const done = taskIsDone(item);
+    if (item.checkedDisplayBucket && done) return item.checkedDisplayBucket;
+    if (!item.completedDate && !done && item.due && item.due < today) return 'overdue';
+    if (item.focus) return 'starred';
+    if (item.createdAt) return 'newest';
+    return 'normal';
+  }
+
   function orderForDisplay(items, date) {
     const today = date || new Date().toISOString().slice(0, 10);
     const list = (items || []).map((item, index) => ({ ...item, __displayIndex: index }));
@@ -72,17 +83,11 @@
     const normal = [];
 
     for (const item of list) {
-      const done = taskIsDone(item);
-      const isOverdueTask = Boolean(!item.completedDate && !done && item.due && item.due < today);
-      if (isOverdueTask) {
-        overdue.push(item);
-      } else if (item.focus) {
-        starred.push(item);
-      } else if (item.createdAt) {
-        newest.push(item);
-      } else {
-        normal.push(item);
-      }
+      const bucket = displayBucket(item, today);
+      if (bucket === 'overdue') overdue.push(item);
+      else if (bucket === 'starred') starred.push(item);
+      else if (bucket === 'newest') newest.push(item);
+      else normal.push(item);
     }
 
     const storedOrder = (a, b) => (a.order ?? a.__displayIndex) - (b.order ?? b.__displayIndex);
@@ -98,5 +103,5 @@
       .map(({ __displayIndex, ...item }) => item);
   }
 
-  return { orderForDisplay, normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone, applyOverduePriority };
+  return { orderForDisplay, displayBucket, normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone, applyOverduePriority };
 });
