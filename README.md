@@ -56,6 +56,6 @@ It will then open from the Dock like a separate app. Your tasks are saved locall
 - Updated the service-worker/cache version to prevent older JavaScript from being mixed with the new app.
 
 
-## v22 update
+## v23 update
 - Anchored task-row controls with CSS grid areas so the checkmark stays in place beside the drag handle and task content when cards are expanded or the window is narrowed.
-- Added cache-busted v22 utility URLs and service-worker cache.
+- Added cache-busted v23 utility URLs and service-worker cache.

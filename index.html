@@ -106,13 +106,13 @@
   .task-list{display:flex;flex-direction:column;gap:12px}
   .task{
     min-width:0;
-    background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;
+    background:#fff;border:1px solid var(--line);border-radius:18px;padding:10px 12px;
     transition:.2s;box-shadow:0 8px 20px rgba(47,49,66,.04)
   }
   .task:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
   .task.overdue-card{background:#fff;border:2px solid #e87989;box-shadow:0 8px 20px rgba(191,95,111,.06)}
   .task.overdue-card:hover{box-shadow:0 14px 34px rgba(191,95,111,.11)}
-  .task-row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"drag check main actions";min-width:0;gap:12px;align-items:start}
+  .task-row{display:grid;grid-template-columns:28px 36px minmax(0,1fr) auto;grid-template-areas:"drag check main actions";min-width:0;gap:8px;align-items:start}
   .drag-handle{grid-area:drag;border:0;background:transparent;color:#a5a1bb;font-size:18px;line-height:22px;padding:0 2px;cursor:grab;user-select:none;justify-self:start}
   .drag-handle:active{cursor:grabbing}
   .task.dragging{opacity:.45}
@@ -126,7 +126,7 @@
   }
   .check.checked{background:linear-gradient(135deg,var(--purple),var(--blue));border-color:transparent}
   .check.checked::after{content:"✓";font-weight:800;font-size:14px}
-  .task-main{grid-area:main;min-width:0}.task-title{font-weight:700;min-width:0;overflow-wrap:anywhere}
+  .task-main{grid-area:main;min-width:0;padding-left:0}.task-title{font-weight:700;min-width:0;overflow-wrap:anywhere}
   .task.completed .task-title{text-decoration:line-through;color:var(--muted)}
   .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:7px;min-width:0}
   .pill{font-size:12px;padding:5px 8px;border-radius:999px;background:#f5f5fa;color:#73778b}
@@ -285,10 +285,10 @@
     .sidebar{display:block;padding:10px 12px;gap:8px;border-right:0;border-bottom:1px solid rgba(255,255,255,.8);min-width:0}
     .brand{font-size:17px}
     .brand-mark{width:32px;height:32px;border-radius:10px}
-    .nav{flex-direction:row;overflow-x:auto;gap:5px;padding-bottom:1px;max-width:100%}
+    .nav{flex-direction:row;flex-wrap:wrap;overflow-x:visible;gap:5px;padding-bottom:1px;max-width:100%}
     .nav button{flex:0 0 auto;padding:8px 10px;white-space:nowrap;font-size:12px}
     .sidebar-spacer{display:none}
-    .main{padding:12px;min-width:0;width:100%;overflow-x:hidden}
+    .main{padding:12px;min-width:0;width:100%;max-width:100%;overflow-x:hidden}
     .topbar{align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px}
     .topbar h1{font-size:24px}
     .top-actions{width:100%;flex-wrap:wrap;gap:7px}
@@ -297,14 +297,14 @@
     .progress-card,.focus-card{padding:15px}
     .form-grid{grid-template-columns:1fr}
     .field.full{grid-column:auto}
-    .task{padding:11px;border-radius:15px}
-    .task-row{grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"drag check main actions";gap:7px}
+    .task{padding:9px 10px;border-radius:15px}
+    .task-row{grid-template-columns:26px 34px minmax(0,1fr) auto;grid-template-areas:"drag check main actions";gap:6px}
     .task-title{font-size:14px}
     .meta{gap:5px;align-items:flex-start}
     .pill{font-size:11px;padding:4px 7px}
-    .date-range-inline{gap:4px}
+    .date-range-inline{gap:4px;max-width:100%}
     .start-date-display,.date-arrow{font-size:11px}
-    .task-actions{grid-column:1/-1;justify-content:flex-end;padding-top:0}
+    .task-actions{grid-column:1/-1;justify-content:flex-end;padding-top:0;min-width:0;flex-wrap:wrap}
     .task-actions button{width:30px;height:30px}
     .quick-subtask-row{margin-left:0;align-items:stretch;flex-wrap:wrap;gap:6px}
     .quick-subtask-editor{min-width:0;flex:1 1 180px}
@@ -323,10 +323,10 @@
     .top-actions{display:grid;grid-template-columns:1fr 1fr}
     .top-actions button{width:100%;min-width:0;padding:8px;font-size:12px}
     .task-row{grid-template-columns:auto auto minmax(0,1fr);grid-template-areas:"drag check main" ". . actions";gap:6px}
-    .task-actions{grid-column:auto;justify-self:end}
+    .task-actions{grid-column:auto;justify-self:end;min-width:0}
     .meta{gap:4px}
     .date-range-inline{width:100%}
-    .quick-subtask-editor{flex-basis:100%}
+    .quick-subtask-editor{flex-basis:100%;max-width:100%}
     .quick-subtask-editor button{padding:7px 8px}
     .category-manager-row{grid-template-columns:minmax(0,1fr) 28px auto}
     .category-manager-row input[type="color"]{width:28px;height:28px}
@@ -522,8 +522,8 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="./order-utils.js?v=22"></script>
-<script src="./task-inline-edit-utils.js?v=22"></script>
+<script src="./order-utils.js?v=23"></script>
+<script src="./task-inline-edit-utils.js?v=23"></script>
 <script>
 const STORAGE_KEY = "dailyflow_tasks_v1";
 const ARCHIVE_KEY = "dailyflow_archive_v1";
