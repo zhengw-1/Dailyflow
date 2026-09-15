@@ -54,3 +54,8 @@ It will then open from the Dock like a separate app. Your tasks are saved locall
 - Renaming a category updates the tasks that use it; task data is not deleted.
 - The layout adapts for desktop, tablet, and phone widths, including wrapping task titles, metadata, quick-subtask controls, and subtask text without clipping.
 - Updated the service-worker/cache version to prevent older JavaScript from being mixed with the new app.
+
+
+## v22 update
+- Anchored task-row controls with CSS grid areas so the checkmark stays in place beside the drag handle and task content when cards are expanded or the window is narrowed.
+- Added cache-busted v22 utility URLs and service-worker cache.
