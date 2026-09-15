@@ -59,3 +59,10 @@ It will then open from the Dock like a separate app. Your tasks are saved locall
 ## v23 update
 - Anchored task-row controls with CSS grid areas so the checkmark stays in place beside the drag handle and task content when cards are expanded or the window is narrowed.
 - Added cache-busted v23 utility URLs and service-worker cache.
+
+
+## v24 update
+- Added extra vertical padding between task action buttons and task metadata on tablet and phone widths.
+- Added breathing room above/below wrapped category, date, and priority pills so they do not touch or overlap.
+- Preserved compact left spacing and the v23 checkmark alignment.
+- Bumped the service-worker cache and utility cache-busting URLs to v24.

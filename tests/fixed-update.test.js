@@ -6,9 +6,9 @@ const sw=fs.readFileSync(path.join(__dirname,"..","service-worker.js"),"utf8");
 function a(c,m){if(!c)throw new Error(m)}
 a(order.includes("function orderForDisplay"),"orderForDisplay definition missing");
 a(order.includes("return { orderForDisplay"),"orderForDisplay export missing");
-a(html.includes("order-utils.js?v=23"),"HTML utility version not bumped");
-a(sw.includes("order-utils.js?v=23"),"SW utility version not bumped");
-a(sw.includes('dailyflow-v23-compact-spacing'),"SW cache version not bumped");
+a(html.includes("order-utils.js?v=24"),"HTML utility version not bumped");
+a(sw.includes("order-utils.js?v=24"),"SW utility version not bumped");
+a(sw.includes('dailyflow-v24-responsive-spacing'),"SW cache version not bumped");
 a(html.includes("DailyFlowOrder.orderForDisplay"),"App must use display ordering");
 a(html.includes("function enableSubtaskDoubleClickEditing"),"Inline subtask editing missing");
 a(html.includes("exportBackupBtn")&&html.includes("restoreBackupBtn"),"Backup/restore missing");
