@@ -1,5 +1,5 @@
-const CACHE = "dailyflow-v20-check-category-responsive";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./order-utils.js?v=20", "./task-inline-edit-utils.js?v=20", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CACHE = "dailyflow-v21-compact-responsive";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./order-utils.js?v=21", "./task-inline-edit-utils.js?v=21", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();

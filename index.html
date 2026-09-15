@@ -28,6 +28,7 @@
     --shadow:0 14px 40px rgba(93,78,160,.10);
   }
   *{box-sizing:border-box}
+  html,body{width:100%;max-width:100%;overflow-x:hidden}
   body{
     margin:0;
     font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -73,8 +74,8 @@
     padding:10px;border-radius:12px;
   }
 
-  .main{padding:30px 32px;overflow:auto}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:24px}
+  .main{padding:30px 32px;overflow-x:hidden;overflow-y:auto;min-width:0;width:100%}
+  .topbar{display:flex;min-width:0;align-items:center;justify-content:space-between;gap:18px;margin-bottom:24px}
   .topbar h1{margin:0;font-size:29px}
   .topbar p{margin:5px 0 0;color:var(--muted)}
   .top-actions{display:flex;gap:10px}
@@ -104,13 +105,14 @@
   .filter-btn.active{background:var(--purple-3);color:var(--purple);border-color:#d7cdfd}
   .task-list{display:flex;flex-direction:column;gap:12px}
   .task{
+    min-width:0;
     background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;
     transition:.2s;box-shadow:0 8px 20px rgba(47,49,66,.04)
   }
   .task:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
   .task.overdue-card{background:#fff;border:2px solid #e87989;box-shadow:0 8px 20px rgba(191,95,111,.06)}
   .task.overdue-card:hover{box-shadow:0 14px 34px rgba(191,95,111,.11)}
-  .task-row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:12px;align-items:start}
+  .task-row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;min-width:0;gap:12px;align-items:start}
   .drag-handle{border:0;background:transparent;color:#a5a1bb;font-size:18px;line-height:22px;padding:0 2px;cursor:grab;user-select:none}
   .drag-handle:active{cursor:grabbing}
   .task.dragging{opacity:.45}
@@ -126,7 +128,7 @@
   .check.checked::after{content:"✓";font-weight:800;font-size:14px}
   .task-title{font-weight:700;min-width:0;overflow-wrap:anywhere}
   .task.completed .task-title{text-decoration:line-through;color:var(--muted)}
-  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;min-width:0}
+  .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:7px;min-width:0}
   .pill{font-size:12px;padding:5px 8px;border-radius:999px;background:#f5f5fa;color:#73778b}
   .pill.purple{background:var(--purple-3);color:#6f5cd8}
   .pill.blue{background:var(--blue-2);color:#4b89b4}
@@ -151,12 +153,19 @@
   .date-range-inline{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
   .custom-category-row{display:flex;gap:8px;align-items:center}
   .custom-category-row input{flex:1;min-width:0}
-  .category-manager{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-  .category-manager-row{display:grid;grid-template-columns:minmax(0,1fr) 42px auto;gap:8px;align-items:center}
-  .category-manager-row input[type="text"]{min-width:0}
-  .category-manager-row input[type="color"]{width:42px;height:42px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#fbfbfe}
-  .category-manager-row button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-weight:700;color:#6f7285}
+  .category-manager-wrap{border:1px solid var(--line);border-radius:12px;background:#fbfbfe;overflow:hidden}
+  .category-manager-wrap summary{cursor:pointer;list-style:none;padding:9px 11px;font-size:12px;font-weight:750;color:#6f7285;display:flex;align-items:center;justify-content:space-between}
+  .category-manager-wrap summary::-webkit-details-marker{display:none}
+  .category-manager-wrap summary::after{content:"⌄";font-size:13px;color:#9a9daf}
+  .category-manager-wrap[open] summary{border-bottom:1px solid var(--line)}
+  .category-manager{display:flex;flex-direction:column;gap:6px;padding:7px}
+  .category-manager-row{display:grid;grid-template-columns:minmax(0,1fr) 30px auto auto;gap:6px;align-items:center}
+  .category-manager-row input[type="text"]{min-width:0;padding:7px 9px;border-radius:9px;font-size:12px}
+  .category-manager-row input[type="color"]{width:30px;height:30px;padding:2px;border:1px solid var(--line);border-radius:8px;background:#fbfbfe}
+  .category-manager-row button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 8px;font-size:11px;font-weight:700;color:#6f7285;white-space:nowrap}
   .category-manager-row button:hover{border-color:var(--purple-2);color:var(--purple)}
+  .category-manager-delete{border:0;background:transparent;color:#a47780;font-size:11px;padding:5px 4px;white-space:nowrap}
+  .category-manager-delete:hover{color:#c86c79}
   .priority-pill{color:#73778b}
   .priority-pill .pill-visible-text{font-weight:650}
   .priority-pill.priority-low{background:#e8f6ec;color:#73778b;border-color:#cfe8d6}
@@ -266,53 +275,66 @@
   @media(max-width:1100px){
     .app{grid-template-columns:210px minmax(0,1fr)}
     .rightbar{display:none}
-    .main{padding:24px}
+    .main{padding:22px 20px}
     .summary-grid{grid-template-columns:1fr}
+    .task-row{gap:9px}
+    .task{padding:14px}
   }
   @media(max-width:760px){
     .app{grid-template-columns:1fr}
-    .sidebar{display:block;padding:12px 14px;gap:10px;border-right:0;border-bottom:1px solid rgba(255,255,255,.8)}
-    .brand{font-size:18px}
-    .brand-mark{width:34px;height:34px;border-radius:11px}
-    .nav{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px}
-    .nav button{flex:0 0 auto;padding:9px 11px;white-space:nowrap}
+    .sidebar{display:block;padding:10px 12px;gap:8px;border-right:0;border-bottom:1px solid rgba(255,255,255,.8);min-width:0}
+    .brand{font-size:17px}
+    .brand-mark{width:32px;height:32px;border-radius:10px}
+    .nav{flex-direction:row;overflow-x:auto;gap:5px;padding-bottom:1px;max-width:100%}
+    .nav button{flex:0 0 auto;padding:8px 10px;white-space:nowrap;font-size:12px}
     .sidebar-spacer{display:none}
-    .main{padding:16px;min-width:0}
-    .topbar{align-items:flex-start;flex-wrap:wrap}
-    .top-actions{width:100%;flex-wrap:wrap}
-    .top-actions button{flex:1 1 140px}
-    .summary-grid{grid-template-columns:1fr}
+    .main{padding:12px;min-width:0;width:100%;overflow-x:hidden}
+    .topbar{align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+    .topbar h1{font-size:24px}
+    .top-actions{width:100%;flex-wrap:wrap;gap:7px}
+    .top-actions button{flex:1 1 120px;padding:9px 10px}
+    .summary-grid{grid-template-columns:1fr;gap:10px}
+    .progress-card,.focus-card{padding:15px}
     .form-grid{grid-template-columns:1fr}
     .field.full{grid-column:auto}
-    .task{padding:13px}
-    .task-row{grid-template-columns:auto auto minmax(0,1fr);gap:8px}
-    .task-actions{grid-column:1/-1;justify-content:flex-end;padding-top:2px}
-    .meta{gap:6px}
-    .inline-control-pill{max-width:100%}
-    .quick-subtask-row{margin-left:0;align-items:stretch;flex-wrap:wrap}
-    .quick-subtask-editor{min-width:0}
-    .quick-subtask-editor input{min-width:0}
-    .subtasks{margin-left:0}
-    .subtask{gap:7px}
-    .subtask-drag-handle{flex:0 0 auto}
-    .modal{padding:10px}
-    .modal-panel{padding:18px;border-radius:18px;max-height:94vh}
-    .category-manager-row{grid-template-columns:minmax(0,1fr) 40px auto}
+    .task{padding:11px;border-radius:15px}
+    .task-row{grid-template-columns:auto auto minmax(0,1fr);gap:7px}
+    .task-title{font-size:14px}
+    .meta{gap:5px;align-items:flex-start}
+    .pill{font-size:11px;padding:4px 7px}
+    .date-range-inline{gap:4px}
+    .start-date-display,.date-arrow{font-size:11px}
+    .task-actions{grid-column:1/-1;justify-content:flex-end;padding-top:0}
+    .task-actions button{width:30px;height:30px}
+    .quick-subtask-row{margin-left:0;align-items:stretch;flex-wrap:wrap;gap:6px}
+    .quick-subtask-editor{min-width:0;flex:1 1 180px}
+    .quick-subtask-editor input{min-width:0;width:100%}
+    .subtasks{margin-left:0;padding-top:9px;gap:6px}
+    .subtask{gap:6px;padding:4px 3px;font-size:13px;max-width:100%}
+    .subtask > span{min-width:0;flex:1 1 auto}
+    .modal{padding:8px}
+    .modal-panel{width:min(620px,100%);padding:16px;border-radius:17px;max-height:96vh}
+    .category-manager-row{grid-template-columns:minmax(0,1fr) 30px auto auto}
   }
   @media(max-width:430px){
-    .main{padding:12px}
-    .topbar h1{font-size:24px}
-    .top-actions button{flex-basis:100%}
-    .task-row{grid-template-columns:auto minmax(0,1fr)}
+    .main{padding:9px}
+    .topbar h1{font-size:21px}
+    .topbar p{font-size:12px}
+    .top-actions{display:grid;grid-template-columns:1fr 1fr}
+    .top-actions button{width:100%;min-width:0;padding:8px;font-size:12px}
+    .task-row{grid-template-columns:auto minmax(0,1fr);gap:6px}
     .drag-handle{grid-row:1}
     .check{grid-row:1}
     .task-actions{grid-column:1/-1}
+    .meta{gap:4px}
+    .date-range-inline{width:100%}
     .quick-subtask-editor{flex-basis:100%}
-    .category-manager-row{grid-template-columns:1fr auto}
-    .category-manager-row input[type="color"]{grid-column:2;grid-row:1}
-    .category-manager-row button{grid-column:1/-1}
+    .quick-subtask-editor button{padding:7px 8px}
+    .category-manager-row{grid-template-columns:minmax(0,1fr) 28px auto}
+    .category-manager-row input[type="color"]{width:28px;height:28px}
+    .category-manager-row button{padding:5px 6px;font-size:10px}
+    .category-manager-delete{grid-column:3;grid-row:1;padding:5px 3px}
   }
-.subtask-inline-editing{outline:1px solid var(--purple-2);border-radius:6px;padding:1px 4px;background:#fff;cursor:text}
 </style>
 </head>
 <body>
@@ -479,8 +501,10 @@
         <div class="color-choice-row" id="categoryColorPresets"></div>
       </div>
       <div class="field full category-manager-field">
-        <label>Edit category options</label>
-        <div class="category-manager" id="categoryManager"></div>
+        <details class="category-manager-wrap">
+          <summary>Edit categories</summary>
+          <div class="category-manager" id="categoryManager"></div>
+        </details>
       </div>
       <div class="field"><label>Priority</label>
         <select id="priority"><option>Low</option><option>Medium</option><option>High</option></select>
@@ -500,8 +524,8 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="./order-utils.js?v=20"></script>
-<script src="./task-inline-edit-utils.js?v=20"></script>
+<script src="./order-utils.js?v=21"></script>
+<script src="./task-inline-edit-utils.js?v=21"></script>
 <script>
 const STORAGE_KEY = "dailyflow_tasks_v1";
 const ARCHIVE_KEY = "dailyflow_archive_v1";
@@ -619,9 +643,7 @@ function renderCategoryManager(){
       <input type="text" value="${escapeHtml(category)}" aria-label="Category name">
       <input type="color" value="${DailyFlowInlineEdit.normalizeHexColor(categoryColor(category))||"#e7f5ff"}" aria-label="Category color">
       <button type="button" onclick="saveCategoryEdit(this)">Save</button>
-    </div>
-    <div style="display:flex;justify-content:flex-end;margin-top:-6px;margin-bottom:3px">
-      <button type="button" class="secondary-btn" style="padding:7px 10px;font-size:12px" onclick="deleteCategoryOption(this)">Delete category</button>
+      <button type="button" class="category-manager-delete" onclick="deleteCategoryOption(this)">Delete</button>
     </div>`).join("");
 }
 window.saveCategoryEdit=button=>{
@@ -644,7 +666,7 @@ window.saveCategoryEdit=button=>{
   showToast('Category updated');
 };
 window.deleteCategoryOption=button=>{
-  const row=button.closest('div[style]')?.previousElementSibling;
+  const row=button.closest('.category-manager-row');
   const name=row?.dataset.category; if(!name)return;
   if(settings.categories.length<=1){showToast('Keep at least one category');return;}
   const used=tasks.some(t=>t.category===name);

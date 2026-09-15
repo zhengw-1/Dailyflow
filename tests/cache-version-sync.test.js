@@ -9,11 +9,11 @@ const order=fs.readFileSync(path.join(__dirname,'..','order-utils.js'),'utf8');
 function assert(cond,msg){ if(!cond) throw new Error(msg); }
 
 assert(order.includes('function applyOverduePriority'), 'order-utils must contain overdue priority function');
-assert(html.includes('./order-utils.js?v=20'), 'index must cache-bust order-utils');
-assert(html.includes('./task-inline-edit-utils.js?v=20'), 'index must cache-bust inline utility');
-assert(/const CACHE\s*=\s*"dailyflow-v20-check-category-responsive"/.test(sw),
+assert(html.includes('./order-utils.js?v=21'), 'index must cache-bust order-utils');
+assert(html.includes('./task-inline-edit-utils.js?v=21'), 'index must cache-bust inline utility');
+assert(/const CACHE\s*=\s*"dailyflow-v21-compact-responsive"/.test(sw),
   'service worker cache name must be bumped using the actual CACHE constant');
-assert(sw.includes('"./order-utils.js?v=20"'), 'service worker must cache the versioned order utility');
-assert(sw.includes('"./task-inline-edit-utils.js?v=20"'), 'service worker must cache the versioned inline utility');
+assert(sw.includes('"./order-utils.js?v=21"'), 'service worker must cache the versioned order utility');
+assert(sw.includes('"./task-inline-edit-utils.js?v=21"'), 'service worker must cache the versioned inline utility');
 
 console.log('PASS recovery cache/version synchronization');
