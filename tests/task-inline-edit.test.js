@@ -60,3 +60,9 @@ assert.strictEqual(typeof utils.formatDisplayDate, 'function', 'formatDisplayDat
   assert.strictEqual(tasks[0].start,'2026-08-13','inline due date must never change start date');
   assert.strictEqual(tasks[0].due,'2026-08-13');
 }
+
+
+const timedTasks=[{id:'t1',subtasks:[]}];
+assert(utils.addSubtask(timedTasks,'t1','Timed','s3','15:30')===true);
+assert.strictEqual(timedTasks[0].subtasks[0].dueTime,'15:30');
+console.log('PASS subtask due-time support');

@@ -11,7 +11,7 @@ assert(html.includes('.task-main{grid-area:main;min-width:0;padding-left:0}'), '
 assert(html.includes('.nav{flex-direction:row;flex-wrap:wrap;overflow-x:visible'), 'mobile navigation must wrap instead of horizontal scrolling');
 assert(html.includes('max-width:100%;overflow-x:hidden'), 'mobile containers must prevent horizontal overflow');
 assert(html.includes('.date-range-inline{width:100%}'), 'date metadata should be allowed to use the full compact row');
-assert(html.includes('order-utils.js?v=24'), 'HTML cache bust must be bumped to v24');
-assert(html.includes('task-inline-edit-utils.js?v=24'), 'inline utility cache bust must be bumped to v24');
-assert(sw.includes('dailyflow-v24-responsive-spacing'), 'service worker cache must be bumped to v24');
-console.log('PASS compact spacing v24 tests');
+assert(html.includes('order-utils.js?v=25'), 'HTML cache bust must be bumped to v25');
+assert(html.includes('task-inline-edit-utils.js?v=25'), 'inline utility cache bust must be bumped to v25');
+assert(sw.includes('dailyflow-v25-manual-order-time-focus'), 'service worker cache must be bumped to v25');
+console.log('PASS compact spacing v25 tests');

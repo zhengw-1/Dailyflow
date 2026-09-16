@@ -98,6 +98,12 @@
   .focus-card h3{margin:0 0 12px}
   .focus-items{display:flex;flex-direction:column;gap:9px}
   .focus-chip{background:#fff;padding:9px 12px;border-radius:12px;border:1px solid var(--line);font-size:14px}
+  .focus-chip{cursor:grab;user-select:none}
+  .focus-chip:active{cursor:grabbing}
+  .focus-chip.focus-drop-target{outline:2px solid var(--blue);outline-offset:2px}
+  .date-time-row{display:flex;gap:8px;min-width:0}.date-time-row input{min-width:0;flex:1}
+  .subtask-time-pill{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:var(--blue-3);color:#4b7da1;font-size:11px;white-space:nowrap}
+  .subtask-tag input[type="time"]{width:92px;padding:3px 5px;border:1px solid rgba(102,83,197,.18);border-radius:8px;background:#fff;font-size:11px}
   .section-title{display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px}
   .section-title h2{margin:0;font-size:19px}
   .filters{display:flex;gap:8px;flex-wrap:wrap}
@@ -175,7 +181,7 @@
   .quick-subtask-btn{border:0;background:var(--purple-3);color:#6653c5;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:700}
   .quick-subtask-editor{display:none;align-items:center;gap:6px;flex:1}
   .quick-subtask-editor.open{display:flex}
-  .quick-subtask-editor input{flex:1;min-width:120px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;font-size:12px}
+  .quick-subtask-editor input{flex:1;min-width:120px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;font-size:12px}.quick-subtask-editor input[type="time"]{flex:0 0 110px;min-width:110px}
   .quick-subtask-editor button{border:0;border-radius:9px;padding:7px 9px;font-size:12px;font-weight:700}
   .task-actions{grid-area:actions;display:flex;gap:6px;min-width:0;justify-self:end;align-items:flex-start;flex-wrap:wrap}
   .task-actions button{border:0;background:#f7f7fb;border-radius:10px;width:32px;height:32px;color:#7f8294}
@@ -443,7 +449,7 @@
           <div class="backup-help">
             <div class="backup-help-block">
               <h4>What the backup saves</h4>
-              <p>It saves all current tasks, subtasks, start and due dates, priorities, categories, category colors, completed history, and DailyFlow settings into one usable JSON file.</p>
+              <p>It saves all current tasks, subtasks, start and due dates/times, priorities, categories, category colors, completed history, and DailyFlow settings into one usable JSON file.</p>
             </div>
             <div class="backup-help-block">
               <h4>How to make a backup</h4>
@@ -491,7 +497,7 @@
     <div class="form-grid">
       <div class="field full"><label>Task name</label><input id="taskName" placeholder="Example: Finish portfolio case study"></div>
       <div class="field"><label>Start date</label><input id="startDate" type="date"></div>
-      <div class="field"><label>Due date</label><input id="dueDate" type="date"></div>
+      <div class="field"><label>Due date</label><div class="date-time-row"><input id="dueDate" type="date"><input id="dueTime" type="time" aria-label="Due time"></div></div>
       <div class="field"><label>Category</label>
         <select id="category"></select>
       </div>
@@ -516,7 +522,7 @@
       </div>
       <div class="field full">
         <label>Subtasks</label>
-        <div class="subtask-builder"><input id="subtaskInput" placeholder="Add a smaller step"><button class="secondary-btn" id="addSubtask" type="button">Add</button></div>
+        <div class="subtask-builder"><input id="subtaskInput" placeholder="Add a smaller step"><input id="subtaskTime" type="time" aria-label="Subtask due time"><button class="secondary-btn" id="addSubtask" type="button">Add</button></div>
         <div class="subtask-tags" id="subtaskTags"></div>
       </div>
       <div class="field full"><label>Notes</label><textarea id="notes" placeholder="Optional details"></textarea></div>
@@ -526,8 +532,8 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="./order-utils.js?v=24"></script>
-<script src="./task-inline-edit-utils.js?v=24"></script>
+<script src="./order-utils.js?v=25"></script>
+<script src="./task-inline-edit-utils.js?v=25"></script>
 <script>
 const STORAGE_KEY = "dailyflow_tasks_v1";
 const ARCHIVE_KEY = "dailyflow_archive_v1";
@@ -549,6 +555,8 @@ let archive = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || "{}");
 let settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
 settings.categories = DailyFlowInlineEdit.normalizeCategories(settings.categories || ["School","Work","Personal"], tasks);
 settings.categoryColors = DailyFlowInlineEdit.normalizeCategoryColors(settings.categoryColors || {}, settings.categories);
+settings.focusOrder = Array.isArray(settings.focusOrder) ? settings.focusOrder : [];
+settings.manualTaskOrder = Boolean(settings.manualTaskOrder);
 for(const task of tasks){ delete task.reminder; }
 delete settings.notifications;
 let pendingCategoryColor = null;
@@ -568,7 +576,7 @@ tasks = DailyFlowOrder.normalizeItemOrder(tasks).map(task => ({
   }
 })();
 
-function ordered(list){ return DailyFlowOrder.orderForDisplay(list, selectedDate || getToday()); }
+function ordered(list){ return DailyFlowOrder.orderForDisplay(list, selectedDate || getToday(), {manual:Boolean(settings.manualTaskOrder)}); }
 function normalizeOrder(){ tasks=DailyFlowOrder.normalizeItemOrder(tasks); }
 
 function save(){
@@ -731,6 +739,13 @@ function enableSubtaskDoubleClickEditing(){
   });
 }
 
+function formatDisplayTime(value){
+  if(!value) return "";
+  const [h,m]=String(value).split(":").map(Number);
+  if(!Number.isFinite(h)||!Number.isFinite(m)) return value;
+  const d=new Date(2000,0,1,h,m);
+  return d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+}
 function renderTask(task){
   const pct=taskPercent(task);
   const overdue=DailyFlowOrder.isOverdue(task,selectedDate);
@@ -752,7 +767,7 @@ function renderTask(task){
             <span class="start-date-display">${DailyFlowInlineEdit.formatDisplayDate(task.start)}</span>
             <span class="date-arrow">→</span>
             <span class="pill blue inline-control-pill ${overdue?"due-emphasis":""}">
-              <span class="pill-visible-text due-visible-text">${DailyFlowInlineEdit.formatDisplayDate(task.due)}</span>
+              <span class="pill-visible-text due-visible-text">${DailyFlowInlineEdit.formatDisplayDate(task.due)}${task.dueTime ? ` · ${formatDisplayTime(task.dueTime)}` : ""}</span>
               <input class="pill-native-overlay" type="date" value="${task.due}" title="Change due date" aria-label="Change due date" onchange="inlineDueDate('${task.id}',this.value)">
             </span>
           </span>
@@ -770,13 +785,13 @@ function renderTask(task){
               <div class="subtask ${s.done?"done":""}" data-task-id="${task.id}" data-subtask-id="${s.id}" ondragover="allowSubtaskDrop(event,'${task.id}','${s.id}')" ondragleave="clearSubtaskDrop(event)" ondrop="dropSubtask(event,'${task.id}','${s.id}')">
                 <button class="subtask-drag-handle" draggable="true" title="Drag to reorder subtask" ondragstart="startSubtaskDrag(event,'${task.id}','${s.id}')" ondragend="endSubtaskDrag(event)">⋮⋮</button>
                 <button class="mini-check ${s.done?"done":""}" onclick="toggleSubtask('${task.id}','${s.id}')"></button>
-                <span data-subtask-id="${s.id}">${escapeHtml(s.title)}</span>
+                <span data-subtask-id="${s.id}">${escapeHtml(s.title)}${s.dueTime ? ` <span class="subtask-time-pill">${formatDisplayTime(s.dueTime)}</span>` : ""}</span>
               </div>`).join("")}
           </div>`:""}
         <div class="quick-subtask-row">
           <button class="quick-subtask-btn" type="button" onclick="showQuickSubtask('${task.id}')">+ Subtask</button>
           <div class="quick-subtask-editor" id="quick-subtask-${task.id}">
-            <input id="quick-subtask-input-${task.id}" placeholder="Add subtask" onkeydown="quickSubtaskKey(event,'${task.id}')">
+            <input id="quick-subtask-input-${task.id}" placeholder="Add subtask" onkeydown="quickSubtaskKey(event,'${task.id}')"><input id="quick-subtask-time-${task.id}" type="time" aria-label="Subtask due time">
             <button type="button" class="primary-btn" onclick="saveQuickSubtask('${task.id}')">Add</button>
             <button type="button" class="secondary-btn" onclick="hideQuickSubtask('${task.id}')">Cancel</button>
           </div>
@@ -821,7 +836,11 @@ window.deleteTask=id=>{
 };
 window.toggleFocus=id=>{
   const t=tasks.find(x=>x.id===id); if(!t)return;
-  t.focus=!t.focus; save(); render(); showToast(t.focus?"Added to Daily Focus":"Removed from Daily Focus");
+  t.focus=!t.focus;
+  settings.focusOrder = Array.isArray(settings.focusOrder) ? settings.focusOrder : [];
+  if(t.focus && !settings.focusOrder.includes(id)) settings.focusOrder.push(id);
+  if(!t.focus) settings.focusOrder=settings.focusOrder.filter(x=>x!==id);
+  save(); render(); showToast(t.focus?"Added to Daily Focus":"Removed from Daily Focus");
 };
 window.inlineCategory=(id,value)=>{
   if(DailyFlowInlineEdit.updateCategory(tasks,id,value)){
@@ -849,7 +868,8 @@ window.saveQuickSubtask=id=>{
   const input=document.getElementById(`quick-subtask-input-${id}`);
   if(!input)return;
   const title=input.value.trim(); if(!title){showToast("Enter a subtask first");return;}
-  if(DailyFlowInlineEdit.addSubtask(tasks,id,title,crypto.randomUUID())){save();render();showToast("Subtask added");}
+  const dueTime=document.getElementById(`quick-subtask-time-${id}`)?.value||"";
+  if(DailyFlowInlineEdit.addSubtask(tasks,id,title,crypto.randomUUID(),dueTime)){save();render();showToast("Subtask added");}
 };
 window.quickSubtaskKey=(event,id)=>{
   if(event.key==="Enter"){event.preventDefault();saveQuickSubtask(id);}
@@ -890,6 +910,7 @@ window.dropTask=(event,targetId)=>{
   const sourceId=draggedTaskId || event.dataTransfer.getData("text/plain");
   if(!sourceId || sourceId===targetId)return;
   tasks=DailyFlowOrder.reorderById(tasks,sourceId,targetId,position);
+  settings.manualTaskOrder=true;
   save(); render(); showToast("Task order updated");
 };
 
@@ -933,6 +954,33 @@ window.dropSubtask=(event,taskId,targetSubtaskId)=>{
   save(); render(); showToast("Subtask order updated");
 };
 
+window.startFocusDrag=(event,id)=>{
+  event.stopPropagation();
+  event.dataTransfer.effectAllowed="move";
+  event.dataTransfer.setData("text/plain",id);
+  event.currentTarget.classList.add("dragging");
+};
+window.allowFocusDrop=(event,id)=>{
+  const sourceId=event.dataTransfer.getData("text/plain");
+  if(!sourceId || sourceId===id)return;
+  event.preventDefault();
+  event.currentTarget.classList.add("focus-drop-target");
+};
+window.clearFocusDrop=event=>event.currentTarget.classList.remove("focus-drop-target","dragging");
+window.dropFocus=(event,targetId)=>{
+  event.preventDefault();
+  const sourceId=event.dataTransfer.getData("text/plain");
+  if(!sourceId || sourceId===targetId)return;
+  const ids=(settings.focusOrder||[]).filter(id=>tasks.some(t=>t.id===id && t.focus));
+  if(!ids.includes(sourceId)) ids.push(sourceId);
+  const from=ids.indexOf(sourceId);
+  ids.splice(from,1);
+  const target=ids.indexOf(targetId);
+  ids.splice(target<0?ids.length:target,0,sourceId);
+  settings.focusOrder=ids;
+  save(); render(); showToast("Daily Focus order updated");
+};
+
 function updateSelectedDateHeader(){
   const d=new Date(selectedDate+"T12:00:00");
   const isToday=selectedDate===getToday();
@@ -969,8 +1017,8 @@ function render(){
   document.getElementById("progressNumber").textContent=`${pct}%`;
   document.getElementById("progressFill").style.width=`${pct}%`;
 
-  const focus=todays.filter(t=>t.focus && !isTaskDone(t)).slice(0,3);
-  document.getElementById("focusItems").innerHTML=focus.length?focus.map(t=>`<div class="focus-chip">${escapeHtml(t.title)}</div>`).join(""):`<div style="color:var(--muted);font-size:14px">Choose up to three focus tasks using ★.</div>`;
+  const focus=DailyFlowOrder.orderFocusItems(todays.filter(t=>!isTaskDone(t)), settings.focusOrder).slice(0,3);
+  document.getElementById("focusItems").innerHTML=focus.length?focus.map(t=>`<div class="focus-chip" draggable="true" ondragstart="startFocusDrag(event,'${t.id}')" ondragover="allowFocusDrop(event,'${t.id}')" ondragleave="clearFocusDrop(event)" ondrop="dropFocus(event,'${t.id}')" ondragend="clearFocusDrop(event)">${escapeHtml(t.title)}</div>`).join(""):`<div style="color:var(--muted);font-size:14px">Choose up to three focus tasks using ★.</div>`;
 
   const upcoming=ordered(tasks.filter(t=>t.start>getToday() || t.due>getToday())).sort((a,b)=>a.due.localeCompare(b.due)||(a.order??0)-(b.order??0));
   document.getElementById("upcomingTasks").innerHTML=upcoming.length?upcoming.map(renderTask).join(""):`<div class="empty">No upcoming tasks.</div>`;
@@ -1035,8 +1083,9 @@ function renderPendingSubtasks(){
   document.getElementById("subtaskTags").innerHTML=pendingSubtasks.map((x,i)=>`<span class="subtask-tag">
     <button type="button" title="Move earlier" onclick="movePendingSubtask(${i},-1)" style="border:0;background:transparent;color:#6653c5;font-weight:800" ${i===0?"disabled":""}>↑</button>
     <button type="button" title="Move later" onclick="movePendingSubtask(${i},1)" style="border:0;background:transparent;color:#6653c5;font-weight:800" ${i===pendingSubtasks.length-1?"disabled":""}>↓</button>
-    ${escapeHtml(x.title)} <button type="button" onclick="removePendingSubtask(${i})" style="border:0;background:transparent;color:#6653c5;font-weight:800">×</button></span>`).join("");
+    ${escapeHtml(x.title)} <input type="time" value="${x.dueTime||""}" aria-label="Subtask due time" onchange="updatePendingSubtaskTime(${i},this.value)"> <button type="button" onclick="removePendingSubtask(${i})" style="border:0;background:transparent;color:#6653c5;font-weight:800">×</button></span>`).join("");
 }
+window.updatePendingSubtaskTime=(i,value)=>{ if(pendingSubtasks[i]) pendingSubtasks[i].dueTime=value||""; };
 window.removePendingSubtask=i=>{ pendingSubtasks.splice(i,1); renderPendingSubtasks(); };
 window.movePendingSubtask=(i,direction)=>{
   const target=i+direction;
@@ -1047,6 +1096,8 @@ window.movePendingSubtask=(i,direction)=>{
 };
 function resetForm(){
   ["taskName","notes","subtaskInput"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("dueTime").value="";
+  document.getElementById("subtaskTime").value="";
   refreshCategoryField("School");
   document.getElementById("newCategoryName").value="";
   document.getElementById("priority").value="Low";
@@ -1062,6 +1113,7 @@ function openModal(task=null){
     document.getElementById("taskName").value=task.title;
     document.getElementById("startDate").value=task.start;
     document.getElementById("dueDate").value=task.due;
+    document.getElementById("dueTime").value=task.dueTime||"";
     refreshCategoryField(task.category);
     document.getElementById("priority").value=task.priority;
     document.getElementById("focus").value=String(Boolean(task.focus));
@@ -1071,6 +1123,7 @@ function openModal(task=null){
     resetForm();
     document.getElementById("startDate").value=selectedDate;
     document.getElementById("dueDate").value=selectedDate;
+    document.getElementById("dueTime").value="";
   }
   renderPendingSubtasks();
 }
@@ -1103,20 +1156,22 @@ document.getElementById("saveNewCategory").onclick=()=>{
 document.getElementById("addSubtask").onclick=()=>{
   const input=document.getElementById("subtaskInput");
   const val=input.value.trim(); if(!val)return;
-  pendingSubtasks.push({id:crypto.randomUUID(),title:val,done:false,order:pendingSubtasks.length}); input.value=""; renderPendingSubtasks();
+  const dueTime=document.getElementById("subtaskTime").value||"";
+  pendingSubtasks.push({id:crypto.randomUUID(),title:val,done:false,dueTime,order:pendingSubtasks.length}); input.value=""; document.getElementById("subtaskTime").value=""; renderPendingSubtasks();
 };
 document.getElementById("saveTask").onclick=()=>{
   const title=document.getElementById("taskName").value.trim();
   if(!title){showToast("Please enter a task name");return}
   const start=document.getElementById("startDate").value||selectedDate;
   const due=document.getElementById("dueDate").value||start;
+  const dueTime=document.getElementById("dueTime").value||"";
   const chosenCategory=document.getElementById("category").value;
   DailyFlowInlineEdit.addCategory(settings.categories,chosenCategory);
   settings.categories=DailyFlowInlineEdit.normalizeCategories(settings.categories,tasks);
   settings.categoryColors=DailyFlowInlineEdit.normalizeCategoryColors(settings.categoryColors,settings.categories);
   settings.categoryColors[chosenCategory]=DailyFlowInlineEdit.normalizeHexColor(pendingCategoryColor) || settings.categoryColors[chosenCategory] || "#e7f5ff";
   const data={
-    title,start,due,category:chosenCategory,
+    title,start,due,dueTime,category:chosenCategory,
     priority:document.getElementById("priority").value,
     focus:document.getElementById("focus").value==="true",notes:document.getElementById("notes").value,
     subtasks:DailyFlowOrder.normalizeItemOrder(pendingSubtasks)
@@ -1238,6 +1293,8 @@ async function restoreDailyFlowBackup(file){
   }));
   archive=backup.archive;
   settings=backup.settings;
+  settings.focusOrder = Array.isArray(settings.focusOrder) ? settings.focusOrder : [];
+  settings.manualTaskOrder = Boolean(settings.manualTaskOrder);
   settings.categories=DailyFlowInlineEdit.normalizeCategories(settings.categories||["School","Work","Personal"],tasks);
   settings.categoryColors=DailyFlowInlineEdit.normalizeCategoryColors(settings.categoryColors||{},settings.categories);
   save();

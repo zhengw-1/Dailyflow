@@ -1,5 +1,5 @@
-const CACHE = "dailyflow-v24-responsive-spacing";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./order-utils.js?v=24", "./task-inline-edit-utils.js?v=24", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CACHE = "dailyflow-v25-manual-order-time-focus";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./order-utils.js?v=25", "./task-inline-edit-utils.js?v=25", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();

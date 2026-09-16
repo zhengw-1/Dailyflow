@@ -4,6 +4,8 @@ const {
   activeTasksForDate,
   finishDay,
   isOverdue,
+  orderForDisplay,
+  orderFocusItems,
 } = require('../order-utils.js');
 
 (function testReorderSupportsAfterPosition() {
@@ -55,3 +57,33 @@ const {
 })();
 
 console.log('All DailyFlow utility tests passed.');
+
+(function testManualOrderOverridesAutomaticBuckets() {
+  const items = [
+    { id: 'normal', order: 0, due: '2026-09-20', completed: false, subtasks: [] },
+    { id: 'overdue', order: 1, due: '2026-09-10', completed: false, subtasks: [] },
+    { id: 'focus', order: 2, due: '2026-09-20', focus: true, completed: false, subtasks: [] },
+  ];
+  const result = orderForDisplay(items, '2026-09-16', { manual: true });
+  assert.deepStrictEqual(result.map(x => x.id), ['normal', 'overdue', 'focus']);
+})();
+
+(function testAutomaticOrderStillPrioritizesOverdueAndFocus() {
+  const items = [
+    { id: 'normal', order: 0, due: '2026-09-20', completed: false, subtasks: [] },
+    { id: 'overdue', order: 1, due: '2026-09-10', completed: false, subtasks: [] },
+    { id: 'focus', order: 2, due: '2026-09-20', focus: true, completed: false, subtasks: [] },
+  ];
+  const result = orderForDisplay(items, '2026-09-16');
+  assert.deepStrictEqual(result.map(x => x.id), ['overdue', 'focus', 'normal']);
+})();
+
+(function testFocusOrderFollowsStoredFocusOrder() {
+  const items = [
+    { id: 'a', focus: true, order: 0 },
+    { id: 'b', focus: true, order: 1 },
+    { id: 'c', focus: false, order: 2 },
+  ];
+  const result = orderFocusItems(items, ['b', 'a']);
+  assert.deepStrictEqual(result.map(x => x.id), ['b', 'a']);
+})();

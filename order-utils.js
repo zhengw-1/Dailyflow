@@ -74,9 +74,12 @@
     return 'normal';
   }
 
-  function orderForDisplay(items, date) {
+  function orderForDisplay(items, date, options = {}) {
     const today = date || new Date().toISOString().slice(0, 10);
     const list = (items || []).map((item, index) => ({ ...item, __displayIndex: index }));
+    if (options.manual) {
+      return normalizeItemOrder(list).map(({ __displayIndex, ...item }) => item);
+    }
     const overdue = [];
     const starred = [];
     const newest = [];
@@ -103,5 +106,16 @@
       .map(({ __displayIndex, ...item }) => item);
   }
 
-  return { orderForDisplay, displayBucket, normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone, applyOverduePriority };
+
+  function orderFocusItems(items, focusOrder = []) {
+    const list = (items || []).filter(item => item.focus);
+    const rank = new Map((focusOrder || []).map((id, index) => [id, index]));
+    return list.slice().sort((a, b) => {
+      const ar = rank.has(a.id) ? rank.get(a.id) : Number.MAX_SAFE_INTEGER;
+      const br = rank.has(b.id) ? rank.get(b.id) : Number.MAX_SAFE_INTEGER;
+      return ar - br || (a.order ?? 0) - (b.order ?? 0);
+    });
+  }
+
+  return { orderForDisplay, orderFocusItems, displayBucket, normalizeItemOrder, reorderById, activeTasksForDate, finishDay, isOverdue, taskIsDone, applyOverduePriority };
 });

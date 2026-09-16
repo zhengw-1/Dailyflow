@@ -83,11 +83,13 @@
     const d=new Date(isoDate+'T12:00:00');
     return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   }
-  function addSubtask(tasks,id,title,subtaskId){
+  function addSubtask(tasks,id,title,subtaskId,dueTime=""){
     const task=getTask(tasks,id); const clean=(title||'').trim();
     if(!task || !clean)return false;
     task.subtasks=task.subtasks||[];
-    task.subtasks.push({id:subtaskId,title:clean,done:false,order:task.subtasks.length});
+    const subtask={id:subtaskId,title:clean,done:false,order:task.subtasks.length};
+    if(dueTime) subtask.dueTime=dueTime;
+    task.subtasks.push(subtask);
     task.completed=false;
     task.completedDate=null;
     return true;
