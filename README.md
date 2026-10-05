@@ -1,68 +1,19 @@
-# DailyFlow for Mac
+# DailyFlow v33 — Balanced Subtask Padding
 
-This folder contains an installable web app version of DailyFlow.
+Updates in v26:
+- Due times can be picked or typed for tasks and subtasks.
+- Main task start remains date-only; due supports date + optional time.
+- Main tasks and subtasks have compact vector-style Notes buttons with editable note popovers.
+- On phone/tablet, subtask due time collapses to a compact clock icon that opens a picker/typing popover.
+- Subtask text keeps more width on small screens; no horizontal scrolling or overlap from due-time controls.
+- Existing v25 manual task ordering, Daily Focus ordering, categories, backup/restore, and data keys are preserved.
+- Tablet/phone content uses about 10% total side padding and prevents subtask controls from escaping the card.
+- v27 responsive width behavior is preserved, with the subtask content now using the same 10% side inset at every screen size.
+- Expanded subtask sections now use compact spacing matching the phone layout.
+- The + Subtask row sits closer to the subtask list.
+- Subtask and + Subtask areas now use an equal card-relative 5% inset on every screen size.
+- Service worker/cache version is bumped to v33.
 
-## Easiest setup
+Do not include personal DailyFlow backup JSON files in this project or public GitHub uploads.
 
-1. Upload the contents of this folder to a static website host such as Netlify Drop or GitHub Pages.
-2. Open the published link in Safari on your Mac.
-3. In Safari, choose **File > Add to Dock**.
-4. Name it **DailyFlow** and click **Add**.
-
-It will then open from the Dock like a separate app. Your tasks are saved locally on that Mac.
-
-## Important
-
-- Do not open only `index.html` from Finder if you want install/offline behavior; the folder needs to be served from an `https://` website.
-- This version does not sync with iPhone or Apple Calendar.
-- Clearing Safari website data or deleting the web app may remove locally saved tasks.
-
-## Version 3 updates
-- Drag tasks by the ⋮⋮ handle to change their saved order.
-- Today always follows the Mac's current local date.
-- Click any date in the calendar to view that day.
-- New tasks automatically use the currently selected calendar date.
-
-## Version 5 updates
-- Today automatically follows the real calendar date, including when the app stays open across midnight.
-- Unfinished tasks carry forward into the new day without changing their original due date.
-- Past-due unfinished tasks show a pink/red Overdue date bubble.
-- Finish Day moves only checked tasks into Completed; unchecked tasks remain active and carry forward.
-- Removed the Apple Calendar sidebar card.
-- Drag-and-drop now shows a single insertion line above or below the target task/subtask instead of a dashed box.
-
-
-## v9 Pastel inline controls
-- Change category directly from a pastel category pill on each task card.
-- Change priority directly from a pastel priority pill instead of a grey form box.
-- Change the due date directly from the pastel-blue date control.
-- Removed the Active / Checked dropdown; use the task checkmark to complete or reopen a task.
-- Add subtasks directly from a task card without opening the full editor.
-- Full Edit remains available for other fields.
-
-## Latest update: saved categories + date range display
-- Category presets begin with School, Work, and Personal.
-- Add a custom category in the task editor and save it for future tasks.
-- Existing categories from older tasks are preserved automatically.
-- Category pills size to the selected category text instead of the longest category in the list.
-- Task cards show start date first and due date second, including the year.
-- Only the due date is editable directly on the task card; use Edit to change both dates.
-
-## v20 check, category, and responsive update
-- Checking or unchecking a task no longer sends it to the bottom; checked tasks keep their display-order bucket until they are reopened or moved to Completed with Finish Day.
-- Edit Task now includes category management: rename a category, change its color, or delete an unused category.
-- Renaming a category updates the tasks that use it; task data is not deleted.
-- The layout adapts for desktop, tablet, and phone widths, including wrapping task titles, metadata, quick-subtask controls, and subtask text without clipping.
-- Updated the service-worker/cache version to prevent older JavaScript from being mixed with the new app.
-
-
-## v23 update
-- Anchored task-row controls with CSS grid areas so the checkmark stays in place beside the drag handle and task content when cards are expanded or the window is narrowed.
-- Added cache-busted v23 utility URLs and service-worker cache.
-
-
-## v24 update
-- Added extra vertical padding between task action buttons and task metadata on tablet and phone widths.
-- Added breathing room above/below wrapped category, date, and priority pills so they do not touch or overlap.
-- Preserved compact left spacing and the v23 checkmark alignment.
-- Bumped the service-worker cache and utility cache-busting URLs to v24.
+- The subtask and + Subtask rows use a tighter, equal 5% card-relative left/right inset so the subtask starts farther left while remaining balanced across phone, tablet, and desktop.

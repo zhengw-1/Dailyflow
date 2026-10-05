@@ -45,16 +45,16 @@ const sw = fs.readFileSync(path.join(__dirname,'..','service-worker.js'),'utf8')
   assert(html.includes('grid-template-columns:210px minmax(0,1fr)'),'tablet main grid missing');
   assert(html.includes('grid-template-columns:1fr'),'phone layout missing');
   assert(html.includes('min-width:0;overflow-wrap:anywhere'),'task title overflow safeguard missing');
-  assert(html.includes('.subtask > span{min-width:0;overflow-wrap:anywhere;word-break:break-word}'),'subtask overflow safeguard missing');
+  assert(html.includes('.subtask > span[data-subtask-id]{grid-column:3;min-width:0;overflow-wrap:anywhere;word-break:break-word}'),'subtask overflow safeguard missing');
   assert(html.includes('id="categoryManager"'),'category manager UI missing');
   assert(html.includes('<details class="category-manager-wrap">'),'compact category editor missing');
   assert(html.includes('overflow-x:hidden'),'horizontal overflow safeguard missing');
   assert(html.includes('.category-manager-row{display:grid;grid-template-columns:minmax(0,1fr) 30px auto auto;gap:6px;align-items:center}'),'compact category row missing');
   assert(html.includes('saveCategoryEdit'),'category rename handler missing');
   assert(html.includes('deleteCategoryOption'),'category delete handler missing');
-  assert(sw.includes('dailyflow-v25-manual-order-time-focus'),'service worker cache not bumped');
-  assert(html.includes('order-utils.js?v=25'),'HTML cache bust not bumped');
-  assert(html.includes('task-inline-edit-utils.js?v=25'),'inline utility cache bust not bumped');
+  assert(sw.includes('dailyflow-v32-card-relative-subtask-inset'),'service worker cache not bumped');
+  assert(html.includes('order-utils.js?v=32'),'HTML cache bust not bumped');
+  assert(html.includes('task-inline-edit-utils.js?v=32'),'inline utility cache bust not bumped');
 })();
 
 console.log('PASS check/category/responsive tests');
